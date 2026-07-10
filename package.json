@@ -1,0 +1,18 @@
+{
+  "name": "jangsa-navigation-v11",
+  "version": "11.0.0",
+  "private": true,
+  "description": "외식업 사장님에게 오늘 실행할 행동 하나를 알려주는 고객 실행형 경영 코치",
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "check": "node --check src/engine.js && node --check src/ui-logic.js && node --check src/app.js && node --check scripts/build-static.cjs",
+    "build": "node scripts/build-static.cjs",
+    "verify": "npm run check && npm test && npm run build"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "happy-dom": "^20.10.6"
+  }
+}

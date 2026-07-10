@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="사장님의 현재 상황을 바탕으로 오늘 실행할 행동 하나를 알려주는 외식업 경영 코치"
+    />
+    <title>장사네비게이션 ver 11.0</title>
+    <meta name="theme-color" content="#246bfd" />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="manifest" href="site.webmanifest" />
+    <link rel="stylesheet" href="assets/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="장사네비게이션 처음으로">
+        <span class="brand-mark">장</span>
+        <span>장사네비게이션</span>
+        <span class="version">v11</span>
+      </a>
+      <button class="text-button" type="button" data-scroll-history>지난 진단 보기</button>
+    </header>
+
+    <main id="top">
+      <section class="hero shell">
+        <div class="hero-copy">
+          <div class="eyebrow">외식업 사장님용 오늘의 실행 코치</div>
+          <h1>오늘 뭘 해야<br />매출에 도움이 될까요?</h1>
+          <p class="hero-lead">
+            어려운 보고서 대신, 지금 상황에서 가장 먼저 할 행동 하나와
+            확인할 숫자 하나만 알려드립니다.
+          </p>
+          <div class="hero-actions">
+            <button class="button primary large" type="button" data-start>3분 진단 시작</button>
+            <button class="button secondary large" type="button" data-sample>샘플 결과 보기</button>
+          </div>
+        </div>
+
+        <aside class="promise-card" aria-label="장사네비게이션 사용 원칙">
+          <div class="promise-number">01</div>
+          <div>
+            <strong>질문은 필요한 것만</strong>
+            <p>모든 숫자를 묻지 않고 현재 고민에 맞는 항목만 확인합니다.</p>
+          </div>
+          <div class="promise-number">02</div>
+          <div>
+            <strong>결론은 행동 하나만</strong>
+            <p>광고·객단가·재방문 중 오늘 가장 먼저 할 일을 고릅니다.</p>
+          </div>
+          <div class="promise-number">03</div>
+          <div>
+            <strong>효과는 실행 후 확인</strong>
+            <p>과장된 매출 약속 대신 3일·7일 뒤 확인할 숫자를 정합니다.</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="trust-strip" aria-label="제품 특징">
+        <div><strong>약 3분</strong><span>진단 시간</span></div>
+        <div><strong>1개</strong><span>오늘의 행동</span></div>
+        <div><strong>3단계</strong><span>실행 순서</span></div>
+        <div><strong>7일</strong><span>결과 확인</span></div>
+      </section>
+
+      <section class="diagnosis-section shell" id="diagnosis">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">매장 진단</span>
+            <h2>사장님 말로 편하게 알려주세요</h2>
+            <p>모르는 숫자는 억지로 추정하지 않아도 됩니다.</p>
+          </div>
+          <div class="step-count" aria-live="polite"><strong id="current-step-number">1</strong> / 3</div>
+        </div>
+
+        <div class="progress-track" aria-hidden="true">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <form id="diagnosis-form" novalidate>
+          <div class="step-panel" data-step="1">
+            <div class="question-block compact-block">
+              <label class="field-label" for="storeName">매장 이름 <span>선택</span></label>
+              <input id="storeName" name="storeName" type="text" placeholder="예: 우리식당 하남점" autocomplete="organization" />
+            </div>
+
+            <fieldset class="question-block">
+              <legend>지금 가장 답답한 건 무엇인가요?</legend>
+              <p class="question-help">가장 먼저 해결하고 싶은 한 가지만 골라주세요.</p>
+              <div class="choice-grid pain-grid">
+                <label class="choice-card">
+                  <input type="radio" name="painPoint" value="customers" />
+                  <span class="choice-icon">👣</span>
+                  <strong>손님이 줄었어요</strong>
+                  <small>빈 시간과 추가 유입이 고민이에요</small>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="painPoint" value="ads" />
+                  <span class="choice-icon">📣</span>
+                  <strong>광고비만 나가요</strong>
+                  <small>클릭은 있는데 방문이 불안해요</small>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="painPoint" value="margin" />
+                  <span class="choice-icon">🧾</span>
+                  <strong>남는 게 적어요</strong>
+                  <small>객단가와 메뉴 구성이 고민이에요</small>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="painPoint" value="repeat" />
+                  <span class="choice-icon">🔁</span>
+                  <strong>단골이 부족해요</strong>
+                  <small>한 번 온 손님이 다시 안 와요</small>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="painPoint" value="unknown" />
+                  <span class="choice-icon">🧭</span>
+                  <strong>뭘 고칠지 모르겠어요</strong>
+                  <small>숫자를 보고 먼저 할 일을 정하고 싶어요</small>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset class="question-block">
+              <legend>어떤 매장인가요?</legend>
+              <div class="choice-grid small-choice-grid">
+                <label class="choice-card small"><input type="radio" name="businessType" value="meal" /><strong>식사형</strong><small>한식·국밥·분식</small></label>
+                <label class="choice-card small"><input type="radio" name="businessType" value="group" /><strong>고기·회식형</strong><small>모임·단체식사</small></label>
+                <label class="choice-card small"><input type="radio" name="businessType" value="cafe" /><strong>카페·디저트</strong><small>베이커리 포함</small></label>
+                <label class="choice-card small"><input type="radio" name="businessType" value="bar" /><strong>술집·야식형</strong><small>이자카야·포차</small></label>
+                <label class="choice-card small"><input type="radio" name="businessType" value="delivery" /><strong>배달·포장형</strong><small>재주문 중심</small></label>
+              </div>
+            </fieldset>
+
+            <details class="accuracy-details">
+              <summary>추천을 조금 더 정확하게 만들기 <span>선택</span></summary>
+              <div class="two-column-fields">
+                <label class="field-label">상권 유형
+                  <select name="tradeArea">
+                    <option value="residential">주거 상권</option>
+                    <option value="office">오피스 상권</option>
+                    <option value="campus">대학가</option>
+                    <option value="hotplace">관광·핫플</option>
+                    <option value="transit">역세권·유동</option>
+                    <option value="drive">외곽·차량</option>
+                  </select>
+                </label>
+                <label class="field-label">가장 큰 강점
+                  <select name="storeStrength">
+                    <option value="specialty">맛·전문성</option>
+                    <option value="value">가성비</option>
+                    <option value="visual">사진·비주얼</option>
+                    <option value="fast">빠른 회전</option>
+                    <option value="group">단체 가능</option>
+                    <option value="delivery">배달·포장</option>
+                  </select>
+                </label>
+              </div>
+            </details>
+          </div>
+
+          <div class="step-panel" data-step="2" hidden>
+            <div class="period-guide">
+              <strong>숫자의 기간을 맞춰주세요</strong>
+              <p>현재 매출은 이번 달 1일부터 오늘까지, 목표 매출은 같은 달 전체 기준으로 입력하면 됩니다.</p>
+            </div>
+
+            <div class="metric-input-grid">
+              <label class="metric-input">
+                <span>현재까지 매출</span>
+                <div class="input-with-unit"><input name="currentRevenue" inputmode="numeric" placeholder="10,000,000" data-number /><b>원</b></div>
+                <small>이번 달 1일부터 오늘까지 매출</small>
+              </label>
+              <label class="metric-input">
+                <span>이번 달 목표 매출</span>
+                <div class="input-with-unit"><input name="targetRevenue" inputmode="numeric" placeholder="15,000,000" data-number /><b>원</b></div>
+                <small>달성하고 싶은 현실적인 목표</small>
+              </label>
+              <label class="metric-input">
+                <span>목표일까지 남은 기간</span>
+                <div class="input-with-unit"><input name="remainingDays" inputmode="numeric" placeholder="20" data-number /><b>일</b></div>
+                <small>이번 달 남은 영업일 기준</small>
+              </label>
+              <label class="metric-input">
+                <span>평균 객단가</span>
+                <div class="input-with-unit"><input name="averageOrderValue" inputmode="numeric" placeholder="20,000" data-number /><b>원</b></div>
+                <small>손님 한 명이 평균적으로 쓰는 금액</small>
+              </label>
+            </div>
+          </div>
+
+          <div class="step-panel" data-step="3" hidden>
+            <div class="period-guide blue-guide">
+              <strong>할 수 없는 행동은 추천에서 제외합니다</strong>
+              <p>정확한 숫자보다 오늘 실제로 실행할 수 있는지를 확인하는 단계입니다.</p>
+            </div>
+
+            <div class="binary-question-list">
+              <fieldset class="binary-question">
+                <legend>손님이 더 와도 받을 자리가 있나요?</legend>
+                <div class="segmented-control">
+                  <label><input type="radio" name="capacity" value="yes" /><span>네, 여유 있어요</span></label>
+                  <label><input type="radio" name="capacity" value="sometimes" /><span>시간대에 따라 달라요</span></label>
+                  <label><input type="radio" name="capacity" value="no" /><span>피크에는 꽉 차요</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="binary-question">
+                <legend>메뉴판이나 세트 구성을 오늘 바꿀 수 있나요?</legend>
+                <div class="segmented-control two">
+                  <label><input type="radio" name="canChangeMenu" value="true" /><span>바꿀 수 있어요</span></label>
+                  <label><input type="radio" name="canChangeMenu" value="false" /><span>지금은 어려워요</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="binary-question">
+                <legend>홍보 수신동의를 받은 고객 연락처가 있나요?</legend>
+                <p class="question-help">동의받은 고객이 없으면 메시지 발송을 추천하지 않습니다.</p>
+                <div class="segmented-control two">
+                  <label><input type="radio" name="hasConsentDb" value="true" /><span>있어요</span></label>
+                  <label><input type="radio" name="hasConsentDb" value="false" /><span>없어요</span></label>
+                </div>
+              </fieldset>
+
+              <fieldset class="binary-question">
+                <legend>현재 온라인 광고를 하고 있나요?</legend>
+                <div class="segmented-control two">
+                  <label><input type="radio" name="adsRunning" value="true" /><span>하고 있어요</span></label>
+                  <label><input type="radio" name="adsRunning" value="false" /><span>안 하고 있어요</span></label>
+                </div>
+                <div class="conditional-fields" id="ad-fields" hidden>
+                  <label class="metric-input"><span>같은 기간 광고비</span><div class="input-with-unit"><input name="adSpend" inputmode="numeric" data-number /><b>원</b></div></label>
+                  <label class="metric-input"><span>같은 기간 클릭 수</span><div class="input-with-unit"><input name="paidClicks" inputmode="numeric" data-number /><b>회</b></div></label>
+                  <label class="metric-input"><span>매출 10만원 중 변동비를 빼고 남는 금액</span>
+                    <select name="contributionMarginRate">
+                      <option value="20">약 2만원</option>
+                      <option value="30" selected>약 3만원</option>
+                      <option value="40">약 4만원</option>
+                      <option value="50">약 5만원</option>
+                    </select>
+                  </label>
+                </div>
+              </fieldset>
+
+              <fieldset class="binary-question">
+                <legend>재방문 손님 비율을 알고 있나요?</legend>
+                <div class="segmented-control two">
+                  <label><input type="radio" name="knowsReturningRate" value="true" /><span>대략 알아요</span></label>
+                  <label><input type="radio" name="knowsReturningRate" value="false" checked /><span>잘 모르겠어요</span></label>
+                </div>
+                <div class="conditional-fields single" id="returning-fields" hidden>
+                  <label class="metric-input"><span>대략적인 재방문 비율</span><div class="input-with-unit"><input name="returningRate" inputmode="numeric" data-number /><b>%</b></div></label>
+                </div>
+              </fieldset>
+            </div>
+          </div>
+
+          <div class="form-error" id="form-error" role="alert" hidden></div>
+
+          <div class="form-navigation">
+            <button class="button secondary" type="button" id="prev-button" hidden>이전</button>
+            <button class="button primary" type="button" id="next-button">다음</button>
+            <button class="button primary result-button" type="submit" id="submit-button" hidden>오늘 할 일 보기</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="result-section shell" id="result" hidden aria-live="polite">
+        <div class="result-label-row">
+          <span class="section-kicker">오늘의 결론</span>
+          <span class="confidence-badge" id="confidence-badge"></span>
+        </div>
+        <div class="result-card">
+          <p class="result-store" id="result-store"></p>
+          <h2 id="result-title"></h2>
+          <p class="result-summary" id="result-summary"></p>
+
+          <div class="why-box">
+            <span>왜 이것부터 하나요?</span>
+            <p id="result-why"></p>
+          </div>
+
+          <div class="result-meta-grid">
+            <div><span>예상 효과</span><strong id="result-effect"></strong></div>
+            <div><span>예상 시간</span><strong id="result-time"></strong></div>
+            <div><span>난이도</span><strong id="result-difficulty"></strong></div>
+          </div>
+
+          <div class="action-plan">
+            <h3>지금 이렇게 하세요</h3>
+            <ol id="result-steps"></ol>
+          </div>
+
+          <div class="metric-check">
+            <span>실행 후 확인할 숫자</span>
+            <strong id="result-metric"></strong>
+          </div>
+
+          <div class="result-actions">
+            <button class="button primary" type="button" id="accept-action">오늘 실행할게요</button>
+            <button class="button secondary" type="button" id="reject-action">내 상황과 맞지 않아요</button>
+            <button class="text-button" type="button" id="copy-result">결과 복사</button>
+          </div>
+
+          <div class="feedback-panel" id="feedback-panel" hidden>
+            <strong>어떤 점이 맞지 않나요?</strong>
+            <div class="feedback-options">
+              <button type="button" data-feedback="실행하기 어려움">실행하기 어려워요</button>
+              <button type="button" data-feedback="이미 하고 있음">이미 하고 있어요</button>
+              <button type="button" data-feedback="효과가 의심됨">효과가 의심돼요</button>
+              <button type="button" data-feedback="상황과 다름">우리 상황과 달라요</button>
+            </div>
+          </div>
+
+          <details class="evidence-details">
+            <summary>판단 근거 자세히 보기</summary>
+            <div class="evidence-content">
+              <div id="result-evidence"></div>
+              <div class="avoid-box"><span>오늘 하지 말아야 할 일</span><p id="result-avoid"></p></div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <section class="history-section shell" id="history">
+        <div class="section-heading">
+          <div>
+            <span class="section-kicker">실행 기록</span>
+            <h2>추천보다 중요한 건 실행 후 결과입니다</h2>
+            <p>최근 10개의 진단이 이 브라우저에만 저장됩니다.</p>
+          </div>
+        </div>
+        <div class="empty-history" id="empty-history">
+          <strong>아직 저장된 진단이 없습니다</strong>
+          <p>첫 진단을 완료하면 오늘의 행동과 확인할 숫자가 여기에 남습니다.</p>
+        </div>
+        <div class="history-list" id="history-list"></div>
+      </section>
+    </main>
+
+    <dialog id="checkin-dialog">
+      <form method="dialog" id="checkin-form">
+        <div class="dialog-heading">
+          <span class="section-kicker">결과 기록</span>
+          <h2>실행 후 무엇이 달라졌나요?</h2>
+          <p id="checkin-metric"></p>
+        </div>
+        <input type="hidden" id="checkin-id" />
+        <label class="field-label">확인한 숫자
+          <input id="checkin-value" type="text" placeholder="예: 객단가 21,200원 / 예약 4건" />
+        </label>
+        <label class="field-label">간단 메모
+          <textarea id="checkin-note" rows="4" placeholder="실행한 내용과 느낀 점을 적어주세요"></textarea>
+        </label>
+        <div class="dialog-actions">
+          <button class="button secondary" value="cancel">취소</button>
+          <button class="button primary" value="default" id="save-checkin">결과 저장</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <footer>
+      <p>입력한 정보와 진단 기록은 현재 브라우저 안에만 저장됩니다.</p>
+      <p>장사네비게이션의 추천은 실행 우선순위를 돕는 참고 정보이며 매출을 보장하지 않습니다.</p>
+    </footer>
+
+    <script src="src/engine.js"></script>
+    <script src="src/ui-logic.js"></script>
+    <script src="src/app.js"></script>
+  </body>
+</html>
