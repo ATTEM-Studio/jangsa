@@ -1,0 +1,34 @@
+name: 버그 신고
+description: 재현 가능한 오류를 알려주세요.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 어떤 문제가 발생했나요?
+      description: 기대한 결과와 실제 결과를 함께 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 순서
+      placeholder: |
+        1. 3분 진단 시작을 누름
+        2. 광고비 고민을 선택함
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: 사용 환경
+      placeholder: 예) Windows 11 / Chrome 149 / PC
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 화면 또는 추가 정보
+      description: 가능하면 개인정보를 가린 화면을 첨부해 주세요.

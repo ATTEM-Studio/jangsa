@@ -1,0 +1,10 @@
+{
+  "name": "장사네비게이션",
+  "short_name": "장사네비",
+  "description": "오늘 실행할 행동 하나를 알려주는 외식업 경영 코치",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f7f9",
+  "theme_color": "#246bfd",
+  "icons": []
+}

@@ -1,0 +1,24 @@
+name: 개선 제안
+description: 사장님이 더 쉽게 실행할 수 있는 개선점을 제안해 주세요.
+title: "[Idea] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: owner_problem
+    attributes:
+      label: 어떤 사장님 문제를 해결하나요?
+      description: 기능 이름보다 실제 매장 상황을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: current_workaround
+    attributes:
+      label: 지금은 어떻게 해결하고 있나요?
+    validations:
+      required: true
+  - type: textarea
+    id: expected_action
+    attributes:
+      label: 개선 후 사장님이 어떤 행동을 하게 되나요?
+    validations:
+      required: true
