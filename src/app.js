@@ -117,25 +117,50 @@
 
   function renderEvidence(result) {
     const metrics = result.metrics;
-    const rows = [
-      ["목표까지 남은 매출", engine.formatShortWon(metrics.shortfallRevenue)],
-      ["하루 필요한 추가 손님", `${metrics.requiredCustomersPerDay.toLocaleString("ko-KR")}명`],
+    const shortfall = metrics.targetReached
+      ? `목표를 ${engine.formatShortWon(Math.abs(metrics.shortfallRevenue))} 넘겼어요.`
+      : `목표까지 ${engine.formatShortWon(metrics.shortfallRevenue)} 남았어요.`;
+    const positionStats = [
+      ["남은 기간", `${result.input.remainingDays}일`],
+      ["하루 필요 손님", `${metrics.requiredCustomersPerDay.toLocaleString("ko-KR")}명`],
     ];
-    if (metrics.cpc !== null) rows.push(["현재 클릭 비용", engine.formatWon(metrics.cpc)]);
-    if (metrics.maxSafeClicksPerCustomer !== null) rows.push(["손님 1명까지 보수적 클릭 기준", `${metrics.maxSafeClicksPerCustomer.toFixed(1)}회`]);
-
-    const reasons = result.confidence.reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("");
-    const assumptions = result.assumptions.length
-      ? `<p><strong>포함된 가정</strong></p><ul>${result.assumptions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
-      : "";
-    const metricRows = rows.map(([label, value]) => `<li><strong>${escapeHtml(label)}</strong> · ${escapeHtml(value)}</li>`).join("");
+    const problemStats = metrics.cpc !== null
+      ? [
+          ["클릭 1회 비용", engine.formatWon(metrics.cpc)],
+          ["손님 1명까지 기준", `${metrics.maxSafeClicksPerCustomer.toFixed(1)}클릭`],
+        ]
+      : [["현재 고민", result.input.painPoint === "customers" ? "새 손님 유입" : result.input.painPoint === "repeat" ? "재방문" : "매출 구조"]];
+    const renderStats = (stats) => stats.map(([label, value]) => `
+      <div class="evidence-stat"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>
+    `).join("");
+    const renderReasons = result.confidence.reasons.map((reason) => `<li>${escapeHtml(reason)}</li>`).join("");
+    const assumptionText = result.assumptions.length
+      ? result.assumptions.map((item) => `<li>${escapeHtml(item)}</li>`).join("")
+      : "<li>입력한 정보만으로 우선순위를 정했습니다.</li>";
 
     document.getElementById("result-evidence").innerHTML = `
-      <p><strong>입력값으로 확인한 기준</strong></p>
-      <ul>${metricRows}</ul>
-      <p><strong>추천 근거 수준</strong></p>
-      <ul>${reasons}</ul>
-      ${assumptions}
+      <div class="evidence-flow">
+        <article class="evidence-card evidence-position">
+          <div class="evidence-card-heading"><span class="evidence-icon">📍</span><div><span class="evidence-eyebrow">현재 위치</span><h3>${escapeHtml(shortfall)}</h3></div></div>
+          <p>입력한 매출과 기간을 손님 수 기준으로 바꿔봤어요.</p>
+          <div class="evidence-stat-grid">${renderStats(positionStats)}</div>
+        </article>
+        <article class="evidence-card evidence-problem">
+          <div class="evidence-card-heading"><span class="evidence-icon">🔎</span><div><span class="evidence-eyebrow">숫자가 말하는 문제</span><h3>${escapeHtml(result.action.why)}</h3></div></div>
+          <div class="evidence-stat-grid">${renderStats(problemStats)}</div>
+        </article>
+        <article class="evidence-card evidence-priority">
+          <div class="evidence-card-heading"><span class="evidence-icon">🎯</span><div><span class="evidence-eyebrow">그래서 오늘의 1순위</span><h3>${escapeHtml(result.action.title)}</h3></div></div>
+          <p>${escapeHtml(result.action.summary)}</p>
+          <div class="evidence-next-check"><span>확인은 이렇게</span><strong>${escapeHtml(result.action.metric)}</strong></div>
+        </article>
+        <article class="evidence-card evidence-basis">
+          <div class="evidence-card-heading"><span class="evidence-icon">🧭</span><div><span class="evidence-eyebrow">이번 추천의 기준</span><h3>${escapeHtml(result.confidence.label)}</h3></div></div>
+          <ul class="evidence-list">${renderReasons}</ul>
+          <div class="evidence-assumption"><span>계산에 포함한 가정</span><ul>${assumptionText}</ul></div>
+        </article>
+        <aside class="evidence-defer"><span>지금은 미루기</span><p>${escapeHtml(result.action.avoid)}</p></aside>
+      </div>
     `;
   }
 
@@ -152,7 +177,6 @@
     document.getElementById("result-difficulty").textContent = result.action.difficulty;
     document.getElementById("result-steps").innerHTML = result.action.steps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
     document.getElementById("result-metric").textContent = result.action.metric;
-    document.getElementById("result-avoid").textContent = result.action.avoid;
     document.getElementById("feedback-panel").hidden = true;
     renderEvidence(result);
     resultSection.hidden = false;
