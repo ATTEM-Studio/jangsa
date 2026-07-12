@@ -334,7 +334,12 @@
   function loadHistory() {
     try {
       const saved = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-      return Array.isArray(saved) ? saved : [];
+      if (!Array.isArray(saved)) return [];
+      const migrated = saved.map(ui.migrateHistoryEntry);
+      if (JSON.stringify(migrated) !== JSON.stringify(saved)) {
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(migrated));
+      }
+      return migrated;
     } catch {
       return [];
     }
@@ -379,6 +384,8 @@
       const resultText = item.resultValue
         ? `<p><strong>기록한 결과:</strong> ${escapeHtml(item.resultValue)}${item.resultNote ? ` · ${escapeHtml(item.resultNote)}` : ""}</p>`
         : `<p>확인할 숫자 · ${escapeHtml(item.metric)}</p>`;
+      const due = item.checkInDueAt ? new Date(item.checkInDueAt).toLocaleDateString("ko-KR", { month: "long", day: "numeric" }) : null;
+      const dueText = due ? `<p class="history-due">${escapeHtml(due)}에 결과 확인</p>` : "";
       return `
         <article class="history-card">
           <div>
@@ -388,6 +395,7 @@
               <span>${escapeHtml(item.storeName)}</span>
             </div>
             <h3>${escapeHtml(item.actionTitle)}</h3>
+            ${dueText}
             ${resultText}
           </div>
           <div class="history-actions">
@@ -462,6 +470,7 @@
         bottleneck: { label: "기초 숫자 확인", requiredCustomersPerDay: 0 },
       });
     },
+    renderHistory,
     resultCopyText,
   };
 

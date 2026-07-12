@@ -34,6 +34,40 @@ test("supported links switch to honest owner confirmation instead of automatic a
   assert.doesNotMatch(window.document.getElementById("confirmation").textContent, /reviews [0-9,]+ analyzed/i);
 });
 
+test("오늘 실행하기는 v2 이력과 7일 확인일을 저장한다", () => {
+  const window = createApp();
+
+  window.document.querySelector("[data-sample]").click();
+  window.document.getElementById("accept-action").click();
+
+  const history = JSON.parse(window.localStorage.getItem("jangsaNavigationV11History"));
+  assert.equal(history[0].version, 2);
+  assert.equal(history[0].scoreVersion, "storefront-v1");
+  assert.match(history[0].checkInDueAt, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(JSON.stringify(history[0]).includes("10000000"), false);
+  assert.match(window.document.getElementById("history-list").textContent, /결과 확인/);
+});
+
+test("저장된 v1 이력은 화면 로딩 때 v2 표시 구조로 보완된다", () => {
+  const window = createApp();
+  window.localStorage.setItem("jangsaNavigationV11History", JSON.stringify([{
+    id: "old",
+    createdAt: "2026-07-12T00:00:00.000Z",
+    storeName: "오래된식당",
+    actionKey: "aov",
+    actionTitle: "세트메뉴 배치",
+    metric: "객단가",
+    status: "accepted",
+  }]));
+
+  window.JangsaAppTest.renderHistory();
+
+  const migrated = JSON.parse(window.localStorage.getItem("jangsaNavigationV11History"));
+  assert.equal(migrated[0].version, 2);
+  assert.equal(migrated[0].checkInDueAt, null);
+  assert.match(window.document.getElementById("history-list").textContent, /오래된식당/);
+});
+
 test("sample result separates storefront readiness, target score, and business bottleneck", () => {
   const window = createApp();
 

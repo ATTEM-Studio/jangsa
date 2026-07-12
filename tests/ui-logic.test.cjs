@@ -6,6 +6,7 @@ const {
   buildOwnerObservations,
   createHistoryEntry,
   formatNumberInput,
+  migrateHistoryEntry,
   normalizePlaceUrl,
   validateStep,
 } = require("../src/ui-logic.js");
@@ -17,6 +18,42 @@ test("normalizes only supported Naver place links", () => {
     "https://m.place.naver.com/restaurant/123/home",
   );
   assert.equal(normalizePlaceUrl("https://example.com/store"), null);
+});
+
+test("v1 실행 이력을 v2로 안전하게 보완한다", () => {
+  const migrated = migrateHistoryEntry({
+    id: "old",
+    storeName: "우리식당",
+    actionKey: "aov",
+    status: "accepted",
+  });
+
+  assert.equal(migrated.version, 2);
+  assert.equal(migrated.storefrontScore, null);
+  assert.equal(migrated.coverage, null);
+  assert.equal(migrated.checkInDueAt, null);
+});
+
+test("새 실행 이력은 7일 확인일과 민감정보 없는 공유 문구를 저장한다", () => {
+  const entry = createHistoryEntry({
+    input: { storeName: "우리식당", currentRevenue: 10_000_000 },
+    action: { key: "aov", title: "세트메뉴 배치", metric: "객단가" },
+    confidence: { label: "근거 충분" },
+    view: {
+      storefront: { visible: true, score: 74, coverage: 0.8 },
+      target: { target: 83 },
+      safeShare: "우리식당 74점",
+    },
+  }, new Date("2026-07-12T00:00:00.000Z"));
+
+  assert.equal(entry.version, 2);
+  assert.equal(entry.scoreVersion, "storefront-v1");
+  assert.equal(entry.storefrontScore, 74);
+  assert.equal(entry.coverage, 0.8);
+  assert.equal(entry.targetScore, 83);
+  assert.equal(entry.checkInDueAt, "2026-07-19T00:00:00.000Z");
+  assert.equal(entry.safeShare, "우리식당 74점");
+  assert.equal(JSON.stringify(entry).includes("10000000"), false);
 });
 
 test("converts owner confirmation values into observations", () => {

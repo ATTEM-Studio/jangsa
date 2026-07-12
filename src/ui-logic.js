@@ -86,7 +86,9 @@
 
   function createHistoryEntry(result, now = new Date()) {
     const timestamp = now.toISOString();
+    const checkInDueAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString();
     return {
+      version: 2,
       id: `diagnosis-${timestamp.replace(/[^0-9]/g, "")}`,
       createdAt: timestamp,
       storeName: result.input.storeName,
@@ -94,9 +96,40 @@
       actionTitle: result.action.title,
       metric: result.action.metric,
       confidenceLabel: result.confidence.label,
+      scoreVersion: "storefront-v1",
+      storefrontScore: result.view?.storefront.visible ? result.view.storefront.score : null,
+      coverage: result.view?.storefront.coverage ?? null,
+      targetScore: result.view?.target.target ?? null,
+      checkInDueAt,
+      safeShare: result.view?.safeShare || "",
       status: "pending",
       resultNote: "",
       resultValue: "",
+    };
+  }
+
+  function migrateHistoryEntry(entry) {
+    if (!entry || typeof entry !== "object") {
+      return {
+        version: 2,
+        scoreVersion: null,
+        storefrontScore: null,
+        coverage: null,
+        targetScore: null,
+        checkInDueAt: null,
+        safeShare: "",
+      };
+    }
+    if (entry.version === 2) return entry;
+    return {
+      ...entry,
+      version: 2,
+      scoreVersion: null,
+      storefrontScore: null,
+      coverage: null,
+      targetScore: null,
+      checkInDueAt: null,
+      safeShare: "",
     };
   }
 
@@ -138,6 +171,7 @@
     buildOwnerObservations,
     createHistoryEntry,
     formatNumberInput,
+    migrateHistoryEntry,
     normalizePlaceUrl,
     parseNumber,
     validateStep,

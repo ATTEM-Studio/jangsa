@@ -1069,6 +1069,11 @@ textarea:focus {
   margin: 5px 0 0;
 }
 
+.history-card .history-due {
+  color: var(--primary-dark);
+  font-weight: 850;
+}
+
 .status-pill {
   border-radius: 999px;
   background: var(--yellow-soft);
