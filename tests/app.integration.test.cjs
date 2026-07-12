@@ -10,12 +10,29 @@ function createApp() {
   const window = new Window({ url: "http://localhost/" });
   window.HTMLElement.prototype.scrollIntoView = function scrollIntoView() {};
   window.document.write(fs.readFileSync(path.join(root, "index.html"), "utf8"));
+  window.eval(fs.readFileSync(path.join(root, "src/observations.js"), "utf8"));
+  window.eval(fs.readFileSync(path.join(root, "src/storefront-score.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/action-priority.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/engine.js"), "utf8"));
+  window.eval(fs.readFileSync(path.join(root, "src/diagnosis-presenter.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/ui-logic.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/app.js"), "utf8"));
   return window;
 }
+
+test("supported links switch to honest owner confirmation instead of automatic analysis", () => {
+  const window = createApp();
+  const input = window.document.getElementById("place-url");
+  input.value = "https://naver.me/abc123";
+
+  window.document.getElementById("place-intake-form").dispatchEvent(
+    new window.Event("submit", { bubbles: true, cancelable: true }),
+  );
+
+  assert.equal(window.document.getElementById("confirmation").hidden, false);
+  assert.match(window.document.getElementById("confirmation").textContent, /static version|owner confirmation/);
+  assert.doesNotMatch(window.document.getElementById("confirmation").textContent, /reviews [0-9,]+ analyzed/i);
+});
 
 test("빈 1단계에서 다음을 누르면 쉬운 오류 문구를 보여준다", () => {
   const window = createApp();

@@ -3,10 +3,36 @@ const assert = require("node:assert/strict");
 
 const {
   buildDiagnosisInput,
+  buildOwnerObservations,
   createHistoryEntry,
   formatNumberInput,
+  normalizePlaceUrl,
   validateStep,
 } = require("../src/ui-logic.js");
+
+test("normalizes only supported Naver place links", () => {
+  assert.equal(normalizePlaceUrl("https://naver.me/abc123"), "https://naver.me/abc123");
+  assert.equal(
+    normalizePlaceUrl("https://m.place.naver.com/restaurant/123/home"),
+    "https://m.place.naver.com/restaurant/123/home",
+  );
+  assert.equal(normalizePlaceUrl("https://example.com/store"), null);
+});
+
+test("converts owner confirmation values into observations", () => {
+  const observations = buildOwnerObservations(
+    { "confirm-coverPhoto": "pass", "confirm-reservation": "unknown" },
+    "2026-07-12T00:00:00.000Z",
+  );
+
+  assert.deepEqual(
+    observations.map(({ key, status, source }) => ({ key, status, source })),
+    [
+      { key: "coverPhoto", status: "confirmed", source: "owner" },
+      { key: "reservation", status: "unknown", source: "owner" },
+    ],
+  );
+});
 
 test("금액 입력은 쉼표와 문자를 제거하고 읽기 쉬운 숫자로 표시한다", () => {
   assert.equal(formatNumberInput("15000000원"), "15,000,000");

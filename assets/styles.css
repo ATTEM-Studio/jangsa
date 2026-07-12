@@ -1300,6 +1300,72 @@ footer p {
   }
 }
 
+.intake-card,
+.confirmation-list {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.intake-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+}
+
+.field-error {
+  color: #b42318;
+  font-weight: 700;
+}
+
+.analysis-progress {
+  display: grid;
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+}
+
+.analysis-progress li {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f8fafc;
+}
+
+.analysis-progress small,
+.confirmation-note {
+  color: var(--muted);
+}
+
+.confirmation-list {
+  display: grid;
+  gap: 14px;
+}
+
+.confirmation-item {
+  display: grid;
+  grid-template-columns: 1fr repeat(4, auto);
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.confirmation-item legend {
+  font-weight: 800;
+}
+
+@media (max-width: 680px) {
+  .intake-row,
+  .confirmation-item {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media print {
   .topbar,
   .hero,

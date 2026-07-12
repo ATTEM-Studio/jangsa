@@ -100,10 +100,45 @@
     };
   }
 
+  function normalizePlaceUrl(value) {
+    try {
+      const url = new URL(String(value || "").trim());
+      const supportedHosts = new Set(["naver.me", "place.naver.com", "m.place.naver.com"]);
+      return url.protocol === "https:" && supportedHosts.has(url.hostname) ? url.href : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function buildOwnerObservations(values, observedAt = new Date().toISOString()) {
+    const stateValues = {
+      pass: true,
+      partial: "partial",
+      fail: false,
+      unknown: null,
+    };
+    return Object.entries(values)
+      .filter(([name]) => name.startsWith("confirm-"))
+      .map(([name, state]) => {
+        const normalizedState = Object.prototype.hasOwnProperty.call(stateValues, state) ? state : "unknown";
+        return {
+          key: name.slice("confirm-".length),
+          value: stateValues[normalizedState],
+          source: "owner",
+          confidence: normalizedState === "unknown" ? "low" : "high",
+          observedAt,
+          status: normalizedState === "unknown" ? "unknown" : "confirmed",
+          evidence: normalizedState === "unknown" ? "Owner could not confirm this item." : "Owner-confirmed intake answer.",
+        };
+      });
+  }
+
   return {
     buildDiagnosisInput,
+    buildOwnerObservations,
     createHistoryEntry,
     formatNumberInput,
+    normalizePlaceUrl,
     parseNumber,
     validateStep,
   };

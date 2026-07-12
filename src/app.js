@@ -4,6 +4,12 @@
   const engine = window.JangsaEngine;
   const ui = window.JangsaUiLogic;
   const form = document.getElementById("diagnosis-form");
+  const intakeForm = document.getElementById("place-intake-form");
+  const analysisSection = document.getElementById("analysis");
+  const confirmationSection = document.getElementById("confirmation");
+  const diagnosisSection = document.getElementById("diagnosis");
+  const confirmationForm = document.getElementById("confirmation-form");
+  const storefrontScoreApi = window.JangsaStorefrontScore;
   const stepPanels = [...document.querySelectorAll("[data-step]")];
   const errorBox = document.getElementById("form-error");
   const nextButton = document.getElementById("next-button");
@@ -19,7 +25,40 @@
   let currentStep = 1;
   let latestResult = null;
   let latestHistoryId = null;
+  let currentOwnerObservations = [];
   let toastTimer = null;
+
+  const confirmationLabels = {
+    businessCategory: "업종 정보",
+    address: "주소",
+    directions: "찾아오는 길",
+    keywords: "대표 키워드",
+    businessHours: "영업시간",
+    contact: "연락처",
+    coverPhoto: "대표 사진",
+    menu: "메뉴",
+    prices: "가격",
+    reservation: "예약",
+    order: "주문",
+    inquiry: "문의",
+    coupon: "쿠폰",
+    reviewVolume: "리뷰 수",
+    reviewRecency: "최근 리뷰",
+    reviewQuality: "리뷰 내용",
+    ownerReplies: "사장님 답글",
+    photoReviews: "사진 리뷰",
+    negativeResponse: "불만 리뷰 대응",
+    description: "상세 설명",
+    menuDescriptions: "메뉴 설명",
+    photoDiversity: "사진 다양성",
+    uniqueValue: "가게 차별점",
+    recentPosts: "최근 소식",
+    profileUpdated: "정보 최신성",
+    reservationSlots: "예약 가능 시간",
+    replySpeed: "답글 속도",
+    recentPostActivity: "소식 활동",
+    featureHealth: "기능 정상 작동",
+  };
 
   function getValues() {
     return Object.fromEntries(new FormData(form).entries());
@@ -63,6 +102,44 @@
     const values = getValues();
     document.getElementById("ad-fields").hidden = values.adsRunning !== "true";
     document.getElementById("returning-fields").hidden = values.knowsReturningRate !== "true";
+  }
+
+  function showIntakeError(message) {
+    const error = document.getElementById("place-url-error");
+    error.textContent = message;
+    error.hidden = false;
+  }
+
+  function renderAnalysisProgress(placeUrl) {
+    analysisSection.hidden = false;
+    document.getElementById("analysis-progress").innerHTML = [
+      "Supported Naver Place link recognized.",
+      "Static version: no live crawling or review analysis is running.",
+      "Owner confirmation will be used for the storefront diagnosis.",
+    ].map((message) => `<li>${escapeHtml(message)}<small>${escapeHtml(placeUrl)}</small></li>`).join("");
+  }
+
+  function renderConfirmation() {
+    const rules = storefrontScoreApi?.STOREFRONT_RULES || [];
+    confirmationForm.innerHTML = `
+      <p class="confirmation-note">This static version uses owner confirmation. It does not claim automatic analysis.</p>
+      ${rules.map((rule) => `
+        <fieldset class="confirmation-item">
+          <legend>${escapeHtml(confirmationLabels[rule.key] || rule.key)}</legend>
+          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="pass" /> Good</label>
+          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="partial" /> Needs work</label>
+          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="fail" /> Missing</label>
+          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="unknown" checked /> owner confirmation needed / unknown</label>
+        </fieldset>
+      `).join("")}
+    `;
+    confirmationSection.hidden = false;
+    confirmationSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function showDiagnosisForm() {
+    diagnosisSection.hidden = false;
+    diagnosisSection.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function setRadio(name, value) {
@@ -337,6 +414,30 @@
   document.querySelectorAll("[data-sample]").forEach((button) => button.addEventListener("click", loadSample));
   document.querySelectorAll("[data-scroll-history]").forEach((button) => {
     button.addEventListener("click", () => document.getElementById("history").scrollIntoView({ behavior: "smooth" }));
+  });
+
+  intakeForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const error = document.getElementById("place-url-error");
+    error.hidden = true;
+    const placeUrl = ui.normalizePlaceUrl(new FormData(intakeForm).get("placeUrl"));
+    if (!placeUrl) {
+      showIntakeError("Naver Place links only. Try a naver.me or place.naver.com URL, or continue manually.");
+      return;
+    }
+    renderAnalysisProgress(placeUrl);
+    renderConfirmation();
+  });
+
+  document.getElementById("manual-intake").addEventListener("click", () => {
+    confirmationSection.hidden = true;
+    analysisSection.hidden = true;
+    showDiagnosisForm();
+  });
+
+  document.getElementById("confirm-storefront").addEventListener("click", () => {
+    currentOwnerObservations = ui.buildOwnerObservations(Object.fromEntries(new FormData(confirmationForm).entries()));
+    showDiagnosisForm();
   });
 
   nextButton.addEventListener("click", () => {
