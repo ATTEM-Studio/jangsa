@@ -1,11 +1,11 @@
 {
-  "name": "jangsa-navigation-v11",
-  "version": "11.0.0",
+  "name": "jangsa-navigation-v12",
+  "version": "12.0.0",
   "private": true,
-  "description": "외식업 사장님에게 오늘 실행할 행동 하나를 알려주는 고객 실행형 경영 코치",
+  "description": "외부 매장 준비도와 내부 성장 병목을 분리해 오늘의 행동을 설명하는 자영업자용 실행 코치",
   "scripts": {
     "test": "node --test tests/*.test.cjs",
-    "check": "node --check src/engine.js && node --check src/ui-logic.js && node --check src/app.js && node --check scripts/build-static.cjs",
+    "check": "node --check src/observations.js && node --check src/storefront-score.js && node --check src/action-priority.js && node --check src/diagnosis-presenter.js && node --check src/engine.js && node --check src/ui-logic.js && node --check src/app.js && node --check scripts/build-static.cjs",
     "build": "node scripts/build-static.cjs",
     "verify": "npm run check && npm test && npm run build"
   },
