@@ -404,16 +404,6 @@
       });
     }
 
-    if (input.capacity === "no") {
-      return finalizeDiagnosis({
-        input,
-        metrics,
-        action: input.canChangeMenu ? aovAction(metrics) : repeatInStoreAction(),
-        confidence: confidence("medium", ["현재 매출과 객단가로 손님 수를 추정했습니다.", "매장 수용 여력을 먼저 반영했습니다."]),
-        assumptions: input.canChangeMenu ? ["1,000원 추가 메뉴의 선택률을 20~40%로 가정했습니다."] : [],
-      });
-    }
-
     if (
       input.painPoint === "ads"
       && input.capacity === "yes"
@@ -440,6 +430,16 @@
           input.hasConsentDb ? "수신동의 고객 DB가 있습니다." : "고객 DB가 없어 매장 안에서 실행하는 방법을 선택했습니다.",
         ]),
         assumptions: input.knowsReturningRate ? [] : ["정확한 재방문 비율은 아직 확인되지 않았습니다."],
+      });
+    }
+
+    if (input.capacity === "no") {
+      return finalizeDiagnosis({
+        input,
+        metrics,
+        action: input.canChangeMenu ? aovAction(metrics) : repeatInStoreAction(),
+        confidence: confidence("medium", ["현재 매출과 객단가로 손님 수를 추정했습니다.", "매장 수용 여력을 먼저 반영했습니다."]),
+        assumptions: input.canChangeMenu ? ["1,000원 추가 메뉴의 선택률을 20~40%로 가정했습니다."] : [],
       });
     }
 

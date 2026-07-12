@@ -198,6 +198,17 @@ test("ads pain with a safe click range avoids ad-screen remediation", () => {
   assert.notEqual(result.action.key, "adScreen");
 });
 
+test("repeat pain keeps repeat action before no-capacity fallback", () => {
+  const result = diagnoseStore(scenario({
+    painPoint: "repeat",
+    hasConsentDb: true,
+    capacity: "no",
+    canChangeMenu: true,
+  }));
+
+  assert.equal(result.action.key, "repeat");
+});
+
 const balancedCases = [
   ...Array.from({ length: 6 }, (_, index) => ({
     expected: "dataCheck",
