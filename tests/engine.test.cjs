@@ -162,6 +162,14 @@ test("추천 결과는 행동·이유·3단계·확인지표를 모두 제공한
   assert.ok(["high", "medium", "low"].includes(result.confidence.level));
 });
 
+test("recommendations include priority factors and recoverable score items", () => {
+  const result = diagnoseStore(scenario({ painPoint: "margin", capacity: "no", canChangeMenu: true }));
+
+  assert.equal(typeof result.action.priorityScore, "number");
+  assert.ok(Array.isArray(result.action.recoverableScoreItems));
+  assert.equal(result.action.requires.canChangeMenu, true);
+});
+
 const balancedCases = [
   ...Array.from({ length: 6 }, (_, index) => ({
     expected: "dataCheck",

@@ -1,10 +1,13 @@
 (function initJangsaEngine(root, factory) {
-  const api = factory();
+  const priorityApi = typeof module !== "undefined" && module.exports
+    ? require("./action-priority.js")
+    : root.JangsaActionPriority;
+  const api = factory(priorityApi);
   if (typeof module !== "undefined" && module.exports) {
     module.exports = api;
   }
   root.JangsaEngine = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function createJangsaEngine() {
+})(typeof globalThis !== "undefined" ? globalThis : this, function createJangsaEngine(priorityApi) {
   "use strict";
 
   const ACTION_SCORE_WEIGHTS = {
@@ -57,7 +60,24 @@
     return { level, label: labels[level], reasons };
   }
 
-  function makeAction({ key, title, summary, why, time, difficulty, steps, metric, avoid, effect, scoreParts }) {
+  function makeAction({
+    key,
+    title,
+    summary,
+    why,
+    time,
+    difficulty,
+    steps,
+    metric,
+    avoid,
+    effect,
+    scoreParts,
+    priority,
+    requires = {},
+    disqualify = [],
+    spendsMoney = false,
+    recoverableScoreItems = [],
+  }) {
     return {
       key,
       title,
@@ -71,6 +91,31 @@
       effect,
       internalScore: calculateScore(scoreParts),
       scoreParts,
+      priority,
+      requires,
+      disqualify,
+      spendsMoney,
+      recoverableScoreItems,
+    };
+  }
+
+  function finalizeDiagnosis({ input, metrics, action, candidates, confidence: confidenceResult, assumptions }) {
+    const options = candidates || [action];
+    const rankedCandidates = options.map((candidate) => ({
+      ...candidate,
+      ...candidate.priority,
+      requires: candidate.requires || {},
+      disqualify: candidate.disqualify || [],
+      spendsMoney: candidate.spendsMoney === true,
+    }));
+    const selected = priorityApi.selectTopAction(rankedCandidates, input);
+    if (!selected) throw new Error("No executable recommendation is available.");
+    return {
+      input,
+      metrics,
+      action: { ...selected, priorityScore: priorityApi.scoreAction(selected) },
+      confidence: confidenceResult,
+      assumptions,
     };
   }
 
@@ -152,6 +197,7 @@
       avoid: "모르는 숫자를 느낌으로 크게 추정하지 마세요.",
       effect: { label: "추천 정확도 향상", low: null, high: null, basis: "필수 데이터 확인" },
       scoreParts: { impact: 90, evidence: 100, feasibility: 98, speed: 98, cost: 100 },
+      priority: { impact: 70, urgency: 95, feasibility: 100, lowCost: 100, confidenceScore: 70 },
     });
   }
 
@@ -174,6 +220,10 @@
       avoid: "화면을 고치기 전에 입찰가와 일예산부터 올리지 마세요.",
       effect: { label: "불필요한 클릭비 보호", low: tenClickCost, high: tenClickCost * 5, basis: "클릭 10~50회 비용" },
       scoreParts: { impact: clickLimit < 5 ? 94 : 78, evidence: 92, feasibility: 82, speed: 88, cost: 95 },
+      priority: { impact: 92, urgency: 90, feasibility: 78, lowCost: 70, confidenceScore: 88 },
+      requires: { capacity: "yes" },
+      spendsMoney: true,
+      recoverableScoreItems: ["coverPhoto", "menu", "description", "reservation"],
     });
   }
 
@@ -194,6 +244,9 @@
       avoid: "메뉴판 전체를 한꺼번에 바꾸거나 모든 손님이 추가 주문한다고 계산하지 마세요.",
       effect: { label: "보수적 객단가 효과", low: metrics.aovEffect.low, high: metrics.aovEffect.high, basis: "1,000원 추가 메뉴·선택률 20~40%" },
       scoreParts: { impact: 84, evidence: 72, feasibility: 96, speed: 96, cost: 94 },
+      priority: { impact: 80, urgency: 70, feasibility: 90, lowCost: 90, confidenceScore: 85 },
+      requires: { canChangeMenu: true },
+      recoverableScoreItems: ["menu", "menuDescriptions", "prices"],
     });
   }
 
@@ -217,6 +270,9 @@
       avoid: "수신동의가 없거나 오래된 고객에게 일괄 발송하지 마세요.",
       effect: { label: "재방문 실험", low: null, high: null, basis: "실제 발송 후 측정" },
       scoreParts: { impact: 86, evidence: knownRate ? 92 : 76, feasibility: 90, speed: 86, cost: 92 },
+      priority: { impact: 82, urgency: 75, feasibility: 88, lowCost: 90, confidenceScore: knownRate ? 92 : 82 },
+      requires: { hasConsentDb: true },
+      recoverableScoreItems: ["recentPosts", "coupon", "ownerReplies"],
     });
   }
 
@@ -237,6 +293,8 @@
       avoid: "연락 동의가 없는 고객 정보를 별도로 모아 홍보에 쓰지 마세요.",
       effect: { label: "재방문 장치 마련", low: null, high: null, basis: "혜택 사용 수로 측정" },
       scoreParts: { impact: 72, evidence: 70, feasibility: 96, speed: 94, cost: 92 },
+      priority: { impact: 65, urgency: 70, feasibility: 95, lowCost: 95, confidenceScore: 75 },
+      recoverableScoreItems: ["recentPosts", "coupon"],
     });
   }
 
@@ -257,6 +315,10 @@
       avoid: "팔로워 수만 보고 여러 명과 한꺼번에 계약하지 마세요.",
       effect: { label: "지역 유입 실험", low: null, high: null, basis: "저장·예약 반응으로 측정" },
       scoreParts: { impact: 88, evidence: 72, feasibility: 68, speed: 78, cost: 64 },
+      priority: { impact: 90, urgency: 82, feasibility: 72, lowCost: 62, confidenceScore: 76 },
+      requires: { capacity: "yes" },
+      spendsMoney: true,
+      recoverableScoreItems: ["coverPhoto", "photoDiversity", "uniqueValue", "recentPosts"],
     });
   }
 
@@ -277,6 +339,9 @@
       avoid: "서로 다른 지역과 메뉴 키워드를 한꺼번에 나열하지 마세요.",
       effect: { label: "지역 검색 전환 개선", low: null, high: null, basis: "7일 전후 행동 지표 비교" },
       scoreParts: { impact: 82, evidence: 74, feasibility: 86, speed: 82, cost: 94 },
+      priority: { impact: 72, urgency: 74, feasibility: 86, lowCost: 90, confidenceScore: 78 },
+      requires: { capacity: "yes" },
+      recoverableScoreItems: ["businessCategory", "address", "directions", "keywords", "businessHours", "contact", "description"],
     });
   }
 
@@ -297,6 +362,9 @@
       avoid: "전체 고객에게 같은 내용을 반복 발송하지 마세요.",
       effect: { label: "필요 손님 소규모 확보", low: metrics.requiredCustomersPerDay, high: metrics.requiredCustomersPerDay * 3, basis: "하루 필요 손님 기준" },
       scoreParts: { impact: 78, evidence: 84, feasibility: 94, speed: 94, cost: 96 },
+      priority: { impact: 78, urgency: 80, feasibility: 92, lowCost: 92, confidenceScore: 88 },
+      requires: { hasConsentDb: true },
+      recoverableScoreItems: ["recentPosts", "coupon", "ownerReplies"],
     });
   }
 
@@ -317,38 +385,38 @@
     const metrics = calculateMetrics(input);
 
     if (missing) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: dataCheckAction(missing),
         confidence: confidence("low", [`${missing[1]}가 필요합니다.`]),
         assumptions: [],
-      };
+      });
     }
 
     if (metrics.targetReached) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: profitDefenseAction(input, metrics),
         confidence: confidence("high", ["현재 매출과 목표 매출이 모두 입력되었습니다."]),
         assumptions: input.canChangeMenu ? ["추가 메뉴 선택률은 20~40% 범위로 봅니다."] : [],
-      };
+      });
     }
 
     if (input.painPoint === "ads" && input.adsRunning && metrics.cpc !== null) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: adScreenAction(input, metrics),
         confidence: confidence("high", ["같은 기간의 광고비와 클릭 수를 사용했습니다.", "객단가와 변동이익 기준을 반영했습니다."]),
         assumptions: ["방문 전환율은 단정하지 않고 안전 클릭 수로 판단합니다."],
-      };
+      });
     }
 
     if (input.painPoint === "repeat") {
       const action = input.hasConsentDb ? repeatAction(input) : repeatInStoreAction();
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action,
@@ -356,89 +424,89 @@
           input.hasConsentDb ? "수신동의 고객 DB가 있습니다." : "고객 DB가 없어 매장 안에서 실행하는 방법을 선택했습니다.",
         ]),
         assumptions: input.knowsReturningRate ? [] : ["정확한 재방문 비율은 아직 확인되지 않았습니다."],
-      };
+      });
     }
 
     if ((input.capacity === "no" || input.painPoint === "margin") && input.canChangeMenu) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: aovAction(metrics),
         confidence: confidence("medium", ["현재 매출과 객단가로 손님 수를 추정했습니다.", "메뉴 구성을 변경할 수 있습니다."]),
         assumptions: ["1,000원 추가 메뉴의 선택률을 20~40%로 가정했습니다."],
-      };
+      });
     }
 
     if (input.painPoint === "customers" && metrics.requiredCustomersPerDay <= 3 && input.hasConsentDb) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: existingCustomerAction(metrics),
         confidence: confidence("high", ["필요한 추가 손님 수가 작습니다.", "수신동의 고객 DB가 있습니다."]),
         assumptions: [],
-      };
+      });
     }
 
     if (input.painPoint === "customers" && input.capacity === "yes" && metrics.requiredCustomersPerDay >= 8) {
       const visualFit = input.storeStrength === "visual"
         || input.tradeArea === "hotplace"
         || ["cafe", "bar"].includes(input.businessType);
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
-        action: visualFit ? creatorAction(metrics) : localDiscoveryAction(metrics),
+        candidates: visualFit ? [creatorAction(metrics), localDiscoveryAction(metrics)] : [localDiscoveryAction(metrics)],
         confidence: confidence("medium", ["필요한 추가 손님 수와 매장 수용 여력을 확인했습니다."]),
         assumptions: ["콘텐츠와 검색 노출이 실제 방문으로 이어지는지는 7일간 측정해야 합니다."],
-      };
+      });
     }
 
     if (input.painPoint === "customers" && input.capacity === "yes") {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: localDiscoveryAction(metrics),
         confidence: confidence("medium", ["추가 손님 수와 수용 여력을 확인했습니다."]),
         assumptions: ["전화·길찾기·예약 수로 먼저 반응을 확인합니다."],
-      };
+      });
     }
 
     if (input.canChangeMenu) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: aovAction(metrics),
         confidence: confidence("medium", ["현재 손님 수를 매출과 객단가로 추정했습니다."]),
         assumptions: ["1,000원 추가 메뉴의 선택률을 20~40%로 가정했습니다."],
-      };
+      });
     }
 
     if (input.adsRunning && metrics.cpc !== null && metrics.maxSafeClicksPerCustomer < 8) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: adScreenAction(input, metrics),
         confidence: confidence("high", ["광고비·클릭 수·객단가 기준이 모두 있습니다."]),
         assumptions: ["방문 전환율은 안전 클릭 수로 간접 판단합니다."],
-      };
+      });
     }
 
     if (input.hasConsentDb && metrics.requiredCustomersPerDay <= 3) {
-      return {
+      return finalizeDiagnosis({
         input,
         metrics,
         action: existingCustomerAction(metrics),
         confidence: confidence("high", ["필요 손님 수가 작고 수신동의 고객 DB가 있습니다."]),
         assumptions: [],
-      };
+      });
     }
 
-    return {
+    return finalizeDiagnosis({
       input,
       metrics,
       action: input.capacity === "no" ? repeatInStoreAction() : localDiscoveryAction(metrics),
       confidence: confidence("medium", ["현재 입력으로 실행 가능한 행동만 남겼습니다."]),
       assumptions: ["실행 후 7일간 행동 지표를 확인해야 합니다."],
-    };
+    });
   }
 
   return {

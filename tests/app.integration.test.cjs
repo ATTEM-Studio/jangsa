@@ -10,6 +10,7 @@ function createApp() {
   const window = new Window({ url: "http://localhost/" });
   window.HTMLElement.prototype.scrollIntoView = function scrollIntoView() {};
   window.document.write(fs.readFileSync(path.join(root, "index.html"), "utf8"));
+  window.eval(fs.readFileSync(path.join(root, "src/action-priority.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/engine.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/ui-logic.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/app.js"), "utf8"));
