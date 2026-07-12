@@ -1423,17 +1423,121 @@ footer p {
 
 .score-categories {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   margin: 18px 0;
 }
 
 .score-categories article {
-  min-height: 96px;
+  min-height: 196px;
   padding: 16px;
   border-radius: 18px;
   border: 1px solid #e7ecf3;
   background: #f8fafc;
+}
+
+.score-eyebrow {
+  color: var(--accent);
+}
+
+.score-hero h3 {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 18px;
+  letter-spacing: -0.03em;
+}
+
+.score-hero p {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.place-score-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.place-score-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.place-score-card h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 17px;
+  letter-spacing: -0.02em;
+}
+
+.place-score-card-head strong {
+  margin: 0;
+  color: var(--accent);
+  font-size: 19px;
+  white-space: nowrap;
+}
+
+.place-score-card > p {
+  min-height: 42px;
+  margin: 10px 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.place-score-progress {
+  overflow: hidden;
+  height: 8px;
+  border-radius: 999px;
+  background: #e7ecf3;
+}
+
+.place-score-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), #69c8ff);
+}
+
+.place-score-detail {
+  margin-top: 14px;
+  border-top: 1px solid #e7ecf3;
+}
+
+.place-score-detail summary {
+  padding-top: 12px;
+  color: var(--ink);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.place-score-detail-body {
+  padding: 4px 0 2px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.place-score-detail-body p {
+  display: grid;
+  gap: 3px;
+  margin: 10px 0;
+}
+
+.place-score-detail-body strong {
+  color: var(--ink);
+}
+
+.place-score-detail-body ul {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding-left: 18px;
 }
 
 .score-categories span {
@@ -1497,7 +1601,7 @@ footer p {
   }
 
   .score-categories {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .result-cta-stack .button,

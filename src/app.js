@@ -264,23 +264,61 @@
   function renderDiagnosisView(view) {
     const score = document.getElementById("storefront-score");
     score.innerHTML = view.storefront.visible
-      ? `<span>매장 준비도</span><strong>${view.storefront.score}/100</strong><small>확인 범위 ${Math.round(view.storefront.coverage * 100)}%</small>`
-      : `<span>매장 준비도</span><strong>정보 추가 필요</strong><small>확인 범위 ${Math.round(view.storefront.coverage * 100)}%</small>`;
+      ? `
+        <span class="score-eyebrow">플레이스 점수</span>
+        <h3>손님이 방문을 결정하기 쉬운 정도</h3>
+        <strong>${view.storefront.score}/100</strong>
+        <p>손님이 가게를 고르기 전에 필요한 정보를 얼마나 쉽게 찾을 수 있는지 보여드려요.</p>
+        <small>확인한 범위 ${Math.round(view.storefront.coverage * 100)}%</small>
+      `
+      : `
+        <span class="score-eyebrow">플레이스 점수</span>
+        <h3>점수를 보여드리려면 조금 더 확인이 필요해요</h3>
+        <strong>확인 중</strong>
+        <p>확인하지 못한 항목은 0점으로 넣지 않았어요.</p>
+        <small>확인한 범위 ${Math.round(view.storefront.coverage * 100)}%</small>
+      `;
 
     const target = document.getElementById("target-score");
     target.hidden = !view.storefront.visible || view.target.target === null;
     target.innerHTML = target.hidden
       ? ""
-      : `<span>이번 행동 후 1차 목표</span><strong>${view.target.current}/100 → ${view.target.target}/100</strong><small>회복 가능 +${view.target.gain}</small>`;
+      : `<span>이번에 고칠 항목만 반영한 목표예요</span><strong>${view.target.current}/100 → ${view.target.target}/100</strong><small>이번 행동으로 회복할 수 있는 점수 +${view.target.gain}점</small>`;
 
-    document.getElementById("score-categories").innerHTML = view.storefront.categories.map((category) => `
-      <article><span>${escapeHtml(category.key)}</span><strong>${category.score === null ? "미확인" : `${category.score}/100`}</strong></article>
-    `).join("");
+    document.getElementById("score-categories").innerHTML = view.storefront.categories.map((category) => {
+      const categoryScore = category.score === null ? "확인 중" : `${category.score}/100`;
+      const progress = category.score === null ? 0 : category.score;
+      return `
+        <article class="place-score-card">
+          <div class="place-score-card-head">
+            <h3>${escapeHtml(category.label)}</h3>
+            <strong>${categoryScore}</strong>
+          </div>
+          <p>${escapeHtml(category.reason)}</p>
+          <div class="place-score-progress" role="progressbar" aria-label="${escapeHtml(category.label)} 점수" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
+            <span style="width: ${progress}%"></span>
+          </div>
+          <details class="place-score-detail">
+            <summary>왜 이렇게 봤나요?</summary>
+            <div class="place-score-detail-body">
+              <p><strong>살펴본 기준</strong>${escapeHtml(category.criterion)}</p>
+              <p><strong>현재 확인한 내용</strong>${escapeHtml(category.reason)}</p>
+              <ul>
+                <li><strong>잘 되어 있음</strong> 손님이 바로 확인하고 다음 행동을 고를 수 있어요.</li>
+                <li><strong>조금 아쉬움</strong> 정보는 있지만 더 또렷하게 다듬을 부분이 있어요.</li>
+                <li><strong>비어 있음</strong> 손님이 결정할 때 필요한 정보가 보이지 않아요.</li>
+                <li><strong>아직 확인 못 함</strong> 점수 계산에서 빼고, 0점으로 처리하지 않아요.</li>
+              </ul>
+            </div>
+          </details>
+        </article>
+      `;
+    }).join("");
 
     document.getElementById("business-bottleneck").innerHTML = `
       <span>현재 성장 병목</span>
       <strong>${escapeHtml(view.bottleneck.label)}</strong>
-      <p>하루 필요 고객 ${view.bottleneck.requiredCustomersPerDay.toLocaleString("ko-KR")}명</p>
+      <p>하루 필요한 고객 ${view.bottleneck.requiredCustomersPerDay.toLocaleString("ko-KR")}명</p>
     `;
   }
 

@@ -11,6 +11,7 @@ function createApp() {
   window.HTMLElement.prototype.scrollIntoView = function scrollIntoView() {};
   window.document.write(fs.readFileSync(path.join(root, "index.html"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/observations.js"), "utf8"));
+  window.eval(fs.readFileSync(path.join(root, "src/place-score-model.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/storefront-score.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/action-priority.js"), "utf8"));
   window.eval(fs.readFileSync(path.join(root, "src/engine.js"), "utf8"));
@@ -68,15 +69,25 @@ test("저장된 v1 이력은 화면 로딩 때 v2 표시 구조로 보완된다"
   assert.match(window.document.getElementById("history-list").textContent, /오래된식당/);
 });
 
-test("sample result separates storefront readiness, target score, and business bottleneck", () => {
+test("sample result shows a score-first Place score with ten closed evidence details", () => {
   const window = createApp();
 
   window.document.querySelector("[data-sample]").click();
 
-  assert.match(window.document.getElementById("storefront-score").textContent, /매장 준비도|readiness/i);
-  assert.match(window.document.getElementById("storefront-score").textContent, /\d+\/100/);
-  assert.match(window.document.getElementById("target-score").textContent, /목표|target/i);
-  assert.match(window.document.getElementById("business-bottleneck").textContent, /필요 고객|bottleneck/i);
+  const score = window.document.getElementById("storefront-score");
+  const categoryCards = window.document.querySelectorAll("#score-categories article");
+  const details = window.document.querySelectorAll("details.place-score-detail");
+
+  assert.match(score.textContent, /플레이스 점수/);
+  assert.match(score.textContent, /\d+\/100/);
+  assert.equal(score.getAttribute("aria-live"), "polite");
+  assert.equal(categoryCards.length, 10);
+  assert.equal(details.length, 10);
+  assert.match(window.document.getElementById("score-categories").textContent, /대표사진/);
+  assert.match(window.document.getElementById("score-categories").textContent, /리뷰 쿠폰 전략/);
+  assert.doesNotMatch(window.document.getElementById("score-categories").textContent, /discovery|conversion|trust|content|activity/i);
+  details.forEach((detail) => assert.equal(detail.open, false));
+  assert.match(window.document.getElementById("target-score").textContent, /목표/);
   assert.equal(window.document.getElementById("target-score").hidden, false);
 });
 
@@ -85,7 +96,7 @@ test("low coverage hides the score and asks for more information", () => {
 
   window.JangsaAppTest.renderLowCoverageSample();
 
-  assert.match(window.document.getElementById("storefront-score").textContent, /정보 추가 필요/);
+  assert.match(window.document.getElementById("storefront-score").textContent, /조금 더 확인이 필요해요/);
   assert.equal(window.document.getElementById("target-score").hidden, true);
 });
 
