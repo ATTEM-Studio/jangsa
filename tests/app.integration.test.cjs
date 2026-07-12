@@ -34,6 +34,30 @@ test("supported links switch to honest owner confirmation instead of automatic a
   assert.doesNotMatch(window.document.getElementById("confirmation").textContent, /reviews [0-9,]+ analyzed/i);
 });
 
+test("intake flow keeps diagnosis questions hidden until confirmation is accepted", () => {
+  const window = createApp();
+  window.document.getElementById("place-url").value = "https://naver.me/abc123";
+
+  window.document.getElementById("place-intake-form").dispatchEvent(
+    new window.Event("submit", { bubbles: true, cancelable: true }),
+  );
+
+  assert.equal(window.document.getElementById("diagnosis").hidden, true);
+  window.document.getElementById("confirm-storefront").click();
+  assert.equal(window.document.getElementById("confirmation").hidden, true);
+  assert.equal(window.document.getElementById("analysis").hidden, true);
+  assert.equal(window.document.getElementById("diagnosis").hidden, false);
+});
+
+test("manual intake still opens owner confirmation", () => {
+  const window = createApp();
+
+  window.document.getElementById("manual-intake").click();
+
+  assert.equal(window.document.getElementById("confirmation").hidden, false);
+  assert.equal(window.document.getElementById("diagnosis").hidden, true);
+});
+
 test("빈 1단계에서 다음을 누르면 쉬운 오류 문구를 보여준다", () => {
   const window = createApp();
 

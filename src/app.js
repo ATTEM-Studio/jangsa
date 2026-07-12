@@ -110,8 +110,14 @@
     error.hidden = false;
   }
 
+  function setFlowState(state) {
+    analysisSection.hidden = state !== "analyzing";
+    confirmationSection.hidden = state !== "confirming";
+    diagnosisSection.hidden = state !== "questions";
+  }
+
   function renderAnalysisProgress(placeUrl) {
-    analysisSection.hidden = false;
+    setFlowState("analyzing");
     document.getElementById("analysis-progress").innerHTML = [
       "Supported Naver Place link recognized.",
       "Static version: no live crawling or review analysis is running.",
@@ -133,12 +139,12 @@
         </fieldset>
       `).join("")}
     `;
-    confirmationSection.hidden = false;
+    setFlowState("confirming");
     confirmationSection.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   function showDiagnosisForm() {
-    diagnosisSection.hidden = false;
+    setFlowState("questions");
     diagnosisSection.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -430,9 +436,7 @@
   });
 
   document.getElementById("manual-intake").addEventListener("click", () => {
-    confirmationSection.hidden = true;
-    analysisSection.hidden = true;
-    showDiagnosisForm();
+    renderConfirmation();
   });
 
   document.getElementById("confirm-storefront").addEventListener("click", () => {
