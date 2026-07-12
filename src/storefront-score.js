@@ -14,33 +14,33 @@
   const PLACE_SCORE_SECTIONS = placeScoreModel?.PLACE_SCORE_SECTIONS || [];
   const getPlaceScoreSection = placeScoreModel?.getPlaceScoreSection || (() => null);
   const STOREFRONT_RULES = [
-    ["businessCategory", "keywords", 4],
-    ["address", "directions", 3],
-    ["directions", "directions", 3],
+    ["businessCategory", "keywords", 5],
+    ["address", "directions", 5],
+    ["directions", "directions", 5],
     ["keywords", "keywords", 5],
     ["businessHours", "extraInfo", 2],
-    ["contact", "smartCall", 3],
-    ["coverPhoto", "heroPhoto", 5],
-    ["menu", "menuInfo", 5],
+    ["contact", "smartCall", 4],
+    ["coverPhoto", "heroPhoto", 7],
+    ["menu", "menuInfo", 7],
     ["prices", "menuInfo", 3],
     ["reservation", "reservation", 4],
-    ["order", "menuInfo", 3],
+    ["order", "menuInfo", 4],
     ["inquiry", "talkTalk", 2],
-    ["coupon", "reviewCoupon", 3],
-    ["reviewVolume", "reviewCoupon", 4],
-    ["reviewRecency", "reviewCoupon", 4],
-    ["reviewQuality", "reviewCoupon", 4],
-    ["ownerReplies", "talkTalk", 4],
+    ["coupon", "reviewCoupon", 1],
+    ["reviewVolume", "reviewCoupon", 2],
+    ["reviewRecency", "reviewCoupon", 2],
+    ["reviewQuality", "reviewCoupon", 2],
+    ["ownerReplies", "talkTalk", 3],
     ["photoReviews", "heroPhoto", 2],
-    ["negativeResponse", "talkTalk", 2],
-    ["description", "description", 5],
-    ["menuDescriptions", "description", 4],
-    ["photoDiversity", "heroPhoto", 4],
-    ["uniqueValue", "description", 3],
-    ["recentPosts", "description", 4],
+    ["negativeResponse", "talkTalk", 1],
+    ["description", "description", 4],
+    ["menuDescriptions", "description", 3],
+    ["photoDiversity", "heroPhoto", 6],
+    ["uniqueValue", "description", 2],
+    ["recentPosts", "description", 3],
     ["profileUpdated", "extraInfo", 3],
     ["reservationSlots", "reservation", 3],
-    ["replySpeed", "smartCall", 3],
+    ["replySpeed", "smartCall", 4],
     ["recentPostActivity", "description", 3],
     ["featureHealth", "extraInfo", 3],
   ].map(([key, sectionKey, maxPoints]) => Object.freeze({ key, sectionKey, maxPoints }));
@@ -58,7 +58,8 @@
               : observation.value === false
                 ? "fail"
                 : "unknown";
-      return { ...rule, state, reason: observation?.evidence || DEFAULT_REASON };
+      const section = getPlaceScoreSection(rule.sectionKey);
+      return { ...rule, state, reason: observation?.evidence || section?.criterion || DEFAULT_REASON };
     });
   }
 
@@ -92,14 +93,17 @@
         const category = grouped[section.key] || { earnedPoints: 0, knownMaxPoints: 0, totalMaxPoints: 0, items: [] };
         const score = category.knownMaxPoints ? Math.round((category.earnedPoints / category.knownMaxPoints) * 100) : null;
         const coverage = category.totalMaxPoints ? category.knownMaxPoints / category.totalMaxPoints : 0;
+        const evidenceItem = category.items.find(
+          (item) => item.reason !== section.criterion && item.reason !== DEFAULT_REASON,
+        );
         return {
           ...section,
           score,
           coverage,
-          earnedPoints: score === null ? 0 : Math.round((section.maxPoints * score) / 100),
-          knownMaxPoints: Math.round(section.maxPoints * coverage),
+          earnedPoints: category.earnedPoints,
+          knownMaxPoints: category.knownMaxPoints,
           totalMaxPoints: section.maxPoints,
-          reason: category.items.find((item) => item.reason !== DEFAULT_REASON)?.reason || DEFAULT_REASON,
+          reason: evidenceItem?.reason || section.criterion || DEFAULT_REASON,
           state: score === null ? "unknown" : score === 100 ? "pass" : score === 0 ? "fail" : "partial",
         };
       },

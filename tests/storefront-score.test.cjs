@@ -2,9 +2,13 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 
 const {
+  STOREFRONT_RULES,
+  buildScoreItems,
   calculateStorefrontScore,
   calculateTargetScore,
 } = require("../src/storefront-score.js");
+const fs = require("node:fs");
+const path = require("node:path");
 const {
   PLACE_SCORE_SECTIONS,
   getPlaceScoreSection,
@@ -47,6 +51,37 @@ test("플레이스 점수 영역은 손님이 이해할 수 있는 판단 기준
   assert.equal(getPlaceScoreStateLabel("partial"), "조금 아쉬워요");
   assert.equal(getPlaceScoreStateLabel("fail"), "비어 있어요");
   assert.equal(getPlaceScoreStateLabel("unknown"), "아직 확인하지 못했어요");
+});
+
+test("세부 확인 항목의 배점은 각 플레이스 점수 영역 배점과 정확히 일치한다", () => {
+  const pointTotals = STOREFRONT_RULES.reduce((totals, rule) => {
+    totals[rule.sectionKey] = (totals[rule.sectionKey] || 0) + rule.maxPoints;
+    return totals;
+  }, {});
+
+  for (const section of PLACE_SCORE_SECTIONS) {
+    assert.equal(pointTotals[section.key], section.maxPoints, `${section.label} 배점`);
+  }
+  assert.equal(STOREFRONT_RULES.reduce((sum, rule) => sum + rule.maxPoints, 0), 100);
+});
+
+test("자동 근거가 없으면 점수 영역의 쉬운 판단 기준을 근거로 보여준다", () => {
+  const scoreItems = buildScoreItems({});
+  const heroPhoto = scoreItems.find((item) => item.key === "coverPhoto");
+  const result = calculateStorefrontScore(scoreItems);
+  const heroPhotoCategory = result.categories.find((section) => section.key === "heroPhoto");
+
+  assert.equal(heroPhoto.reason, getPlaceScoreSection("heroPhoto").criterion);
+  assert.equal(heroPhotoCategory.reason, getPlaceScoreSection("heroPhoto").criterion);
+  assert.equal(heroPhotoCategory.knownMaxPoints, 0);
+});
+
+test("브라우저는 플레이스 점수 모델을 점수 계산 파일보다 먼저 불러온다", () => {
+  const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
+  const modelIndex = html.indexOf('src/place-score-model.js');
+  const scoreIndex = html.indexOf('src/storefront-score.js');
+  assert.ok(modelIndex >= 0, "플레이스 점수 모델 스크립트가 필요합니다.");
+  assert.ok(modelIndex < scoreIndex, "점수 모델을 먼저 불러와야 합니다.");
 });
 
 test("unknown items are excluded from the denominator", () => {
