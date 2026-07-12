@@ -1359,10 +1359,145 @@ footer p {
   font-weight: 800;
 }
 
+.diagnosis-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr);
+  gap: 18px;
+  margin: 28px 0 18px;
+}
+
+.score-hero,
+.target-card,
+.bottleneck-card {
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.07);
+  padding: 24px;
+}
+
+.score-hero {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(45, 156, 219, 0.16), transparent 32%),
+    linear-gradient(135deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.target-card {
+  background:
+    radial-gradient(circle at 82% 14%, rgba(255, 110, 64, 0.18), transparent 34%),
+    linear-gradient(135deg, #fff 0%, #fff8f4 100%);
+}
+
+.score-hero span,
+.target-card span,
+.bottleneck-card span {
+  display: inline-flex;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.score-hero strong,
+.target-card strong {
+  display: block;
+  margin-top: 8px;
+  color: var(--ink);
+  font-size: clamp(34px, 7vw, 58px);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.score-hero small,
+.target-card small {
+  display: block;
+  margin-top: 12px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.score-categories {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.score-categories article {
+  min-height: 96px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid #e7ecf3;
+  background: #f8fafc;
+}
+
+.score-categories span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.score-categories strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.bottleneck-card {
+  margin: 18px 0;
+  background:
+    linear-gradient(90deg, rgba(255, 110, 64, 0.1), rgba(255, 255, 255, 0)),
+    #fff;
+}
+
+.bottleneck-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.bottleneck-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.result-cta-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 20px 0 26px;
+}
+
+.result-cta-stack .button {
+  min-width: 180px;
+}
+
+.result-cta-stack .text-button {
+  color: var(--muted);
+}
+
 @media (max-width: 680px) {
   .intake-row,
   .confirmation-item {
     grid-template-columns: 1fr;
+  }
+
+  .diagnosis-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .score-categories {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .result-cta-stack .button,
+  .result-cta-stack .text-button {
+    width: 100%;
   }
 }
 

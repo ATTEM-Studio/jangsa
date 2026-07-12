@@ -3,6 +3,8 @@
 
   const engine = window.JangsaEngine;
   const ui = window.JangsaUiLogic;
+  const observationsApi = window.JangsaObservations;
+  const presenterApi = window.JangsaDiagnosisPresenter;
   const form = document.getElementById("diagnosis-form");
   const intakeSection = document.getElementById("intake");
   const intakeForm = document.getElementById("place-intake-form");
@@ -168,6 +170,15 @@
 
   function loadSample() {
     form.reset();
+    currentOwnerObservations = storefrontScoreApi.STOREFRONT_RULES.map((rule, index) => observationsApi.createObservation({
+      key: rule.key,
+      value: index % 6 === 0 ? "partial" : index % 9 === 0 ? false : true,
+      source: "owner",
+      confidence: "high",
+      observedAt: "2026-07-12T00:00:00.000Z",
+      status: "confirmed",
+      evidence: "샘플 매장 확인값",
+    }));
     setInput("storeName", "샘플식당 하남점");
     setRadio("painPoint", "ads");
     setRadio("businessType", "meal");
@@ -250,6 +261,29 @@
     `;
   }
 
+  function renderDiagnosisView(view) {
+    const score = document.getElementById("storefront-score");
+    score.innerHTML = view.storefront.visible
+      ? `<span>매장 준비도</span><strong>${view.storefront.score}/100</strong><small>확인 범위 ${Math.round(view.storefront.coverage * 100)}%</small>`
+      : `<span>매장 준비도</span><strong>정보 추가 필요</strong><small>확인 범위 ${Math.round(view.storefront.coverage * 100)}%</small>`;
+
+    const target = document.getElementById("target-score");
+    target.hidden = !view.storefront.visible || view.target.target === null;
+    target.innerHTML = target.hidden
+      ? ""
+      : `<span>이번 행동 후 1차 목표</span><strong>${view.target.current}/100 → ${view.target.target}/100</strong><small>회복 가능 +${view.target.gain}</small>`;
+
+    document.getElementById("score-categories").innerHTML = view.storefront.categories.map((category) => `
+      <article><span>${escapeHtml(category.key)}</span><strong>${category.score === null ? "미확인" : `${category.score}/100`}</strong></article>
+    `).join("");
+
+    document.getElementById("business-bottleneck").innerHTML = `
+      <span>현재 성장 병목</span>
+      <strong>${escapeHtml(view.bottleneck.label)}</strong>
+      <p>하루 필요 고객 ${view.bottleneck.requiredCustomersPerDay.toLocaleString("ko-KR")}명</p>
+    `;
+  }
+
   function renderResult(result) {
     const badge = document.getElementById("confidence-badge");
     badge.textContent = result.confidence.label;
@@ -270,7 +304,19 @@
 
   function generateResult({ saveHistory = true } = {}) {
     const input = ui.buildDiagnosisInput(getValues());
-    latestResult = engine.diagnoseStore(input);
+    const businessResult = engine.diagnoseStore(input);
+    const resolvedObservations = observationsApi.resolveObservations(currentOwnerObservations);
+    const scoreItems = storefrontScoreApi.buildScoreItems(resolvedObservations);
+    const storefront = storefrontScoreApi.calculateStorefrontScore(scoreItems);
+    const target = storefrontScoreApi.calculateTargetScore(storefront, businessResult.action.recoverableScoreItems || []);
+    const view = presenterApi.presentDiagnosis({
+      businessResult,
+      storefrontScore: storefront,
+      targetScore: target,
+      observationMap: resolvedObservations,
+    });
+    latestResult = { ...businessResult, view };
+    renderDiagnosisView(view);
     renderResult(latestResult);
 
     if (saveHistory) {
@@ -366,19 +412,11 @@
     if (!latestResult) return "";
     const result = latestResult;
     return [
-      `[${result.input.storeName}] 오늘의 장사네비게이션`,
-      "",
-      result.action.title,
-      result.action.summary,
-      "",
-      `왜: ${result.action.why}`,
-      `예상 효과: ${formatEffect(result)}`,
+      result.view?.safeShare || `[${result.input.storeName}] 오늘의 장사네비게이션`,
       `예상 시간: ${result.action.time}`,
       "",
-      "지금 이렇게 하세요",
+      "지금 이렇게 하세요:",
       ...result.action.steps.map((step, index) => `${index + 1}. ${step}`),
-      "",
-      `실행 후 확인할 숫자: ${result.action.metric}`,
     ].join("\n");
   }
 
@@ -415,6 +453,17 @@
       .replaceAll('"', "&quot;")
       .replaceAll("'", "&#039;");
   }
+
+  window.JangsaAppTest = {
+    renderLowCoverageSample() {
+      renderDiagnosisView({
+        storefront: { visible: false, score: null, coverage: 0.4, categories: [] },
+        target: { current: null, target: null, gain: 0, recovered: [] },
+        bottleneck: { label: "기초 숫자 확인", requiredCustomersPerDay: 0 },
+      });
+    },
+    resultCopyText,
+  };
 
   document.querySelectorAll("[data-start]").forEach((button) => {
     button.addEventListener("click", () => document.getElementById("intake").scrollIntoView({ behavior: "smooth" }));

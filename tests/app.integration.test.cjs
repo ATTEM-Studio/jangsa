@@ -34,6 +34,54 @@ test("supported links switch to honest owner confirmation instead of automatic a
   assert.doesNotMatch(window.document.getElementById("confirmation").textContent, /reviews [0-9,]+ analyzed/i);
 });
 
+test("sample result separates storefront readiness, target score, and business bottleneck", () => {
+  const window = createApp();
+
+  window.document.querySelector("[data-sample]").click();
+
+  assert.match(window.document.getElementById("storefront-score").textContent, /매장 준비도|readiness/i);
+  assert.match(window.document.getElementById("storefront-score").textContent, /\d+\/100/);
+  assert.match(window.document.getElementById("target-score").textContent, /목표|target/i);
+  assert.match(window.document.getElementById("business-bottleneck").textContent, /필요 고객|bottleneck/i);
+  assert.equal(window.document.getElementById("target-score").hidden, false);
+});
+
+test("low coverage hides the score and asks for more information", () => {
+  const window = createApp();
+
+  window.JangsaAppTest.renderLowCoverageSample();
+
+  assert.match(window.document.getElementById("storefront-score").textContent, /정보 추가 필요/);
+  assert.equal(window.document.getElementById("target-score").hidden, true);
+});
+
+test("result copy text does not include raw revenue or ad values", () => {
+  const window = createApp();
+
+  window.document.querySelector("[data-sample]").click();
+
+  const copyText = window.JangsaAppTest.resultCopyText();
+  assert.equal(copyText.includes("10000000"), false);
+  assert.equal(copyText.includes("10,000,000"), false);
+  assert.equal(copyText.includes("600000"), false);
+  assert.equal(copyText.includes("600,000"), false);
+});
+
+test("dynamic score updates use aria-live and result CTAs are semantic actions", () => {
+  const window = createApp();
+
+  window.document.querySelector("[data-sample]").click();
+
+  const score = window.document.getElementById("storefront-score");
+  assert.equal(score.getAttribute("aria-live"), "polite");
+
+  for (const id of ["primary-fix-action", "generate-draft", "defer-action"]) {
+    const action = window.document.getElementById(id);
+    assert.ok(action);
+    assert.match(action.tagName, /^(BUTTON|A)$/);
+  }
+});
+
 test("intake flow keeps diagnosis questions hidden until confirmation is accepted", () => {
   const window = createApp();
   window.document.getElementById("place-url").value = "https://naver.me/abc123";
