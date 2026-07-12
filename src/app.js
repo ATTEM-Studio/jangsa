@@ -4,6 +4,7 @@
   const engine = window.JangsaEngine;
   const ui = window.JangsaUiLogic;
   const form = document.getElementById("diagnosis-form");
+  const intakeSection = document.getElementById("intake");
   const intakeForm = document.getElementById("place-intake-form");
   const analysisSection = document.getElementById("analysis");
   const confirmationSection = document.getElementById("confirmation");
@@ -111,6 +112,7 @@
   }
 
   function setFlowState(state) {
+    intakeSection.hidden = state !== "intake";
     analysisSection.hidden = state !== "analyzing";
     confirmationSection.hidden = state !== "confirming";
     diagnosisSection.hidden = state !== "questions";
@@ -414,7 +416,7 @@
   }
 
   document.querySelectorAll("[data-start]").forEach((button) => {
-    button.addEventListener("click", () => document.getElementById("diagnosis").scrollIntoView({ behavior: "smooth" }));
+    button.addEventListener("click", () => document.getElementById("intake").scrollIntoView({ behavior: "smooth" }));
   });
 
   document.querySelectorAll("[data-sample]").forEach((button) => button.addEventListener("click", loadSample));

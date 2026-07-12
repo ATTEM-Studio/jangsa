@@ -42,6 +42,7 @@ test("intake flow keeps diagnosis questions hidden until confirmation is accepte
     new window.Event("submit", { bubbles: true, cancelable: true }),
   );
 
+  assert.equal(window.document.getElementById("intake").hidden, true);
   assert.equal(window.document.getElementById("diagnosis").hidden, true);
   window.document.getElementById("confirm-storefront").click();
   assert.equal(window.document.getElementById("confirmation").hidden, true);
@@ -55,6 +56,7 @@ test("manual intake still opens owner confirmation", () => {
   window.document.getElementById("manual-intake").click();
 
   assert.equal(window.document.getElementById("confirmation").hidden, false);
+  assert.equal(window.document.getElementById("intake").hidden, true);
   assert.equal(window.document.getElementById("diagnosis").hidden, true);
 });
 
