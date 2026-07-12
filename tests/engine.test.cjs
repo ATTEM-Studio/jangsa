@@ -170,6 +170,34 @@ test("recommendations include priority factors and recoverable score items", () 
   assert.equal(result.action.requires.canChangeMenu, true);
 });
 
+test("ads pain with no capacity falls back to an executable action", () => {
+  const result = diagnoseStore(scenario({
+    painPoint: "ads",
+    adsRunning: true,
+    adSpend: 600_000,
+    paidClicks: 1_000,
+    capacity: "no",
+    canChangeMenu: false,
+  }));
+
+  assert.notEqual(result.action.key, "adScreen");
+  assert.equal(result.action.requires.capacity, undefined);
+});
+
+test("ads pain with a safe click range avoids ad-screen remediation", () => {
+  const result = diagnoseStore(scenario({
+    painPoint: "ads",
+    adsRunning: true,
+    adSpend: 30_000,
+    paidClicks: 1_000,
+    capacity: "yes",
+    canChangeMenu: false,
+  }));
+
+  assert.ok(result.metrics.maxSafeClicksPerCustomer >= 8);
+  assert.notEqual(result.action.key, "adScreen");
+});
+
 const balancedCases = [
   ...Array.from({ length: 6 }, (_, index) => ({
     expected: "dataCheck",

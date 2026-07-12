@@ -404,11 +404,27 @@
       });
     }
 
-    if (input.painPoint === "ads" && input.adsRunning && metrics.cpc !== null) {
+    if (input.capacity === "no") {
       return finalizeDiagnosis({
         input,
         metrics,
-        action: adScreenAction(input, metrics),
+        action: input.canChangeMenu ? aovAction(metrics) : repeatInStoreAction(),
+        confidence: confidence("medium", ["현재 매출과 객단가로 손님 수를 추정했습니다.", "매장 수용 여력을 먼저 반영했습니다."]),
+        assumptions: input.canChangeMenu ? ["1,000원 추가 메뉴의 선택률을 20~40%로 가정했습니다."] : [],
+      });
+    }
+
+    if (
+      input.painPoint === "ads"
+      && input.capacity === "yes"
+      && input.adsRunning
+      && metrics.cpc !== null
+      && metrics.maxSafeClicksPerCustomer < 8
+    ) {
+      return finalizeDiagnosis({
+        input,
+        metrics,
+        candidates: [adScreenAction(input, metrics), localDiscoveryAction(metrics)],
         confidence: confidence("high", ["같은 기간의 광고비와 클릭 수를 사용했습니다.", "객단가와 변동이익 기준을 반영했습니다."]),
         assumptions: ["방문 전환율은 단정하지 않고 안전 클릭 수로 판단합니다."],
       });
@@ -427,7 +443,7 @@
       });
     }
 
-    if ((input.capacity === "no" || input.painPoint === "margin") && input.canChangeMenu) {
+    if (input.painPoint === "margin" && input.canChangeMenu) {
       return finalizeDiagnosis({
         input,
         metrics,
