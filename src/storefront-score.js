@@ -1,42 +1,49 @@
 (function initStorefrontScore(root, factory) {
-  const api = factory();
+  const model =
+    typeof module !== "undefined" && module.exports && typeof require === "function"
+      ? require("./place-score-model.js")
+      : root.JangsaPlaceScoreModel;
+  const api = factory(model);
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.JangsaStorefrontScore = api;
-})(typeof globalThis !== "undefined" ? globalThis : this, function createScoreApi() {
+})(typeof globalThis !== "undefined" ? globalThis : this, function createScoreApi(placeScoreModel) {
   "use strict";
 
   const STATE_FACTOR = { pass: 1, partial: 0.5, fail: 0, unknown: null };
+  const DEFAULT_REASON = "아직 자동으로 확인하지 못했어요.";
+  const PLACE_SCORE_SECTIONS = placeScoreModel?.PLACE_SCORE_SECTIONS || [];
+  const getPlaceScoreSection = placeScoreModel?.getPlaceScoreSection || (() => null);
   const STOREFRONT_RULES = [
-    ["businessCategory", "discovery", 4],
-    ["address", "discovery", 3],
-    ["directions", "discovery", 3],
-    ["keywords", "discovery", 5],
-    ["businessHours", "discovery", 2],
-    ["contact", "discovery", 3],
-    ["coverPhoto", "conversion", 5],
-    ["menu", "conversion", 5],
-    ["prices", "conversion", 3],
-    ["reservation", "conversion", 4],
-    ["order", "conversion", 3],
-    ["inquiry", "conversion", 2],
-    ["coupon", "conversion", 3],
-    ["reviewVolume", "trust", 4],
-    ["reviewRecency", "trust", 4],
-    ["reviewQuality", "trust", 4],
-    ["ownerReplies", "trust", 4],
-    ["photoReviews", "trust", 2],
-    ["negativeResponse", "trust", 2],
-    ["description", "content", 5],
-    ["menuDescriptions", "content", 4],
-    ["photoDiversity", "content", 4],
-    ["uniqueValue", "content", 3],
-    ["recentPosts", "content", 4],
-    ["profileUpdated", "activity", 3],
-    ["reservationSlots", "activity", 3],
-    ["replySpeed", "activity", 3],
-    ["recentPostActivity", "activity", 3],
-    ["featureHealth", "activity", 3],
-  ].map(([key, category, maxPoints]) => Object.freeze({ key, category, maxPoints }));
+    ["businessCategory", "keywords", 4],
+    ["address", "directions", 3],
+    ["directions", "directions", 3],
+    ["keywords", "keywords", 5],
+    ["businessHours", "extraInfo", 2],
+    ["contact", "smartCall", 3],
+    ["coverPhoto", "heroPhoto", 5],
+    ["menu", "menuInfo", 5],
+    ["prices", "menuInfo", 3],
+    ["reservation", "reservation", 4],
+    ["order", "menuInfo", 3],
+    ["inquiry", "talkTalk", 2],
+    ["coupon", "reviewCoupon", 3],
+    ["reviewVolume", "reviewCoupon", 4],
+    ["reviewRecency", "reviewCoupon", 4],
+    ["reviewQuality", "reviewCoupon", 4],
+    ["ownerReplies", "talkTalk", 4],
+    ["photoReviews", "heroPhoto", 2],
+    ["negativeResponse", "talkTalk", 2],
+    ["description", "description", 5],
+    ["menuDescriptions", "description", 4],
+    ["photoDiversity", "heroPhoto", 4],
+    ["uniqueValue", "description", 3],
+    ["recentPosts", "description", 4],
+    ["profileUpdated", "extraInfo", 3],
+    ["reservationSlots", "reservation", 3],
+    ["replySpeed", "smartCall", 3],
+    ["recentPostActivity", "description", 3],
+    ["featureHealth", "extraInfo", 3],
+  ].map(([key, sectionKey, maxPoints]) => Object.freeze({ key, sectionKey, maxPoints }));
 
   function buildScoreItems(observationMap) {
     return STOREFRONT_RULES.map((rule) => {
@@ -51,7 +58,7 @@
               : observation.value === false
                 ? "fail"
                 : "unknown";
-      return { ...rule, state, reason: observation?.evidence || "No evidence available" };
+      return { ...rule, state, reason: observation?.evidence || DEFAULT_REASON };
     });
   }
 
@@ -68,26 +75,35 @@
     const coverage = totalMaxPoints ? knownMaxPoints / totalMaxPoints : 0;
     const visible = coverage >= 0.6;
     const score = visible && knownMaxPoints ? Math.round((earnedPoints / knownMaxPoints) * 100) : null;
-    const categories = Object.values(
-      items.reduce((result, item) => {
-        const category = result[item.category] || {
-          key: item.category,
-          earnedPoints: 0,
-          knownMaxPoints: 0,
-          totalMaxPoints: 0,
+    const grouped = items.reduce((result, item) => {
+      const key = item.sectionKey || item.category || item.key;
+      const group = result[key] || { earnedPoints: 0, knownMaxPoints: 0, totalMaxPoints: 0, items: [] };
+      group.totalMaxPoints += item.maxPoints;
+      group.items.push(item);
+      if (item.earnedPoints !== null) {
+        group.earnedPoints += item.earnedPoints;
+        group.knownMaxPoints += item.maxPoints;
+      }
+      result[key] = group;
+      return result;
+    }, {});
+    const categories = (PLACE_SCORE_SECTIONS.length ? PLACE_SCORE_SECTIONS : Object.keys(grouped).map((key) => ({ key, label: key, maxPoints: grouped[key].totalMaxPoints, criterion: DEFAULT_REASON }))).map(
+      (section) => {
+        const category = grouped[section.key] || { earnedPoints: 0, knownMaxPoints: 0, totalMaxPoints: 0, items: [] };
+        const score = category.knownMaxPoints ? Math.round((category.earnedPoints / category.knownMaxPoints) * 100) : null;
+        const coverage = category.totalMaxPoints ? category.knownMaxPoints / category.totalMaxPoints : 0;
+        return {
+          ...section,
+          score,
+          coverage,
+          earnedPoints: score === null ? 0 : Math.round((section.maxPoints * score) / 100),
+          knownMaxPoints: Math.round(section.maxPoints * coverage),
+          totalMaxPoints: section.maxPoints,
+          reason: category.items.find((item) => item.reason !== DEFAULT_REASON)?.reason || DEFAULT_REASON,
+          state: score === null ? "unknown" : score === 100 ? "pass" : score === 0 ? "fail" : "partial",
         };
-        category.totalMaxPoints += item.maxPoints;
-        if (item.earnedPoints !== null) {
-          category.earnedPoints += item.earnedPoints;
-          category.knownMaxPoints += item.maxPoints;
-        }
-        result[item.category] = category;
-        return result;
-      }, {}),
-    ).map((category) => ({
-      ...category,
-      score: category.knownMaxPoints ? Math.round((category.earnedPoints / category.knownMaxPoints) * 100) : null,
-    }));
+      },
+    );
     return { visible, score, coverage, earnedPoints, knownMaxPoints, totalMaxPoints, categories, items };
   }
 
@@ -105,5 +121,5 @@
     return { current: scoreResult.score, target, gain: target - scoreResult.score, recovered: recoverable.map((item) => item.key) };
   }
 
-  return { STOREFRONT_RULES, buildScoreItems, calculateStorefrontScore, calculateTargetScore };
+  return { STOREFRONT_RULES, buildScoreItems, calculateStorefrontScore, calculateTargetScore, getPlaceScoreSection };
 });
