@@ -116,6 +116,7 @@
     analysisSection.hidden = state !== "analyzing";
     confirmationSection.hidden = state !== "confirming";
     diagnosisSection.hidden = state !== "questions";
+    resultSection.hidden = state !== "result";
   }
 
   function renderAnalysisProgress(placeUrl) {
@@ -264,7 +265,7 @@
     document.getElementById("result-metric").textContent = result.action.metric;
     document.getElementById("feedback-panel").hidden = true;
     renderEvidence(result);
-    resultSection.hidden = false;
+    setFlowState("result");
   }
 
   function generateResult({ saveHistory = true } = {}) {

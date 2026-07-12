@@ -77,6 +77,8 @@ test("샘플 진단은 광고 확대 금지 행동 하나와 확인 지표를 �
   window.document.querySelector("[data-sample]").click();
 
   assert.equal(window.document.getElementById("result").hidden, false);
+  assert.equal(window.document.getElementById("intake").hidden, true);
+  assert.equal(window.document.getElementById("diagnosis").hidden, true);
   assert.match(window.document.getElementById("result-title").textContent, /광고비를 늘리지 마세요/);
   assert.match(window.document.getElementById("result-metric").textContent, /전화|길찾기|예약/);
   assert.equal(window.document.querySelectorAll("#result-steps li").length, 3);
