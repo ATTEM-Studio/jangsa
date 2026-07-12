@@ -4,6 +4,21 @@ const path = require("node:path");
 const FILES = ["index.html", "site.webmanifest", "robots.txt"];
 const DIRECTORIES = ["assets", "src"];
 
+function copyDirectory(source, destination) {
+  fs.mkdirSync(destination, { recursive: true });
+
+  for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    const sourcePath = path.join(source, entry.name);
+    const destinationPath = path.join(destination, entry.name);
+
+    if (entry.isDirectory()) {
+      copyDirectory(sourcePath, destinationPath);
+    } else if (entry.isFile()) {
+      fs.copyFileSync(sourcePath, destinationPath);
+    }
+  }
+}
+
 function buildStaticSite({ root, outDir }) {
   const sourceRoot = path.resolve(root);
   const destination = path.resolve(outDir);
@@ -24,7 +39,7 @@ function buildStaticSite({ root, outDir }) {
   for (const directory of DIRECTORIES) {
     const source = path.join(sourceRoot, directory);
     if (!fs.existsSync(source)) throw new Error(`필수 폴더가 없습니다: ${directory}`);
-    fs.cpSync(source, path.join(destination, directory), { recursive: true });
+    copyDirectory(source, path.join(destination, directory));
   }
 
   fs.writeFileSync(path.join(destination, ".nojekyll"), "", "utf8");
