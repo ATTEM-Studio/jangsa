@@ -209,6 +209,32 @@ test("repeat pain keeps repeat action before no-capacity fallback", () => {
   assert.equal(result.action.key, "repeat");
 });
 
+test("unsafe ads with uncertain capacity avoids capacity-gated ad-screen action", () => {
+  const result = diagnoseStore(scenario({
+    painPoint: "unknown",
+    adsRunning: true,
+    adSpend: 600_000,
+    paidClicks: 1_000,
+    capacity: "sometimes",
+    canChangeMenu: false,
+  }));
+
+  assert.notEqual(result.action.key, "adScreen");
+  assert.equal(result.action.requires.capacity, undefined);
+});
+
+test("uncertain capacity fallback remains executable", () => {
+  const result = diagnoseStore(scenario({
+    painPoint: "unknown",
+    capacity: "sometimes",
+    canChangeMenu: false,
+    hasConsentDb: false,
+  }));
+
+  assert.notEqual(result.action.key, "localDiscovery");
+  assert.equal(result.action.requires.capacity, undefined);
+});
+
 const balancedCases = [
   ...Array.from({ length: 6 }, (_, index) => ({
     expected: "dataCheck",

@@ -496,7 +496,7 @@
       });
     }
 
-    if (input.adsRunning && metrics.cpc !== null && metrics.maxSafeClicksPerCustomer < 8) {
+    if (input.capacity === "yes" && input.adsRunning && metrics.cpc !== null && metrics.maxSafeClicksPerCustomer < 8) {
       return finalizeDiagnosis({
         input,
         metrics,
@@ -519,7 +519,7 @@
     return finalizeDiagnosis({
       input,
       metrics,
-      action: input.capacity === "no" ? repeatInStoreAction() : localDiscoveryAction(metrics),
+      action: input.capacity === "yes" ? localDiscoveryAction(metrics) : repeatInStoreAction(),
       confidence: confidence("medium", ["현재 입력으로 실행 가능한 행동만 남겼습니다."]),
       assumptions: ["실행 후 7일간 행동 지표를 확인해야 합니다."],
     });
