@@ -1503,6 +1503,13 @@ footer p {
   background: linear-gradient(90deg, var(--accent), #69c8ff);
 }
 
+.place-score-pending {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .place-score-detail {
   margin-top: 14px;
   border-top: 1px solid #e7ecf3;

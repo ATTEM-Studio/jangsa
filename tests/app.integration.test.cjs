@@ -98,6 +98,10 @@ test("low coverage hides the score and asks for more information", () => {
 
   assert.match(window.document.getElementById("storefront-score").textContent, /조금 더 확인이 필요해요/);
   assert.equal(window.document.getElementById("target-score").hidden, true);
+  const unknownCard = window.document.querySelector("#score-categories .place-score-card");
+  assert.match(unknownCard.textContent, /확인 중/);
+  assert.equal(unknownCard.querySelector('[aria-valuenow="0"]'), null);
+  assert.equal(unknownCard.querySelector('[role="progressbar"]'), null);
 });
 
 test("result copy text does not include raw revenue or ad values", () => {

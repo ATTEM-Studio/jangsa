@@ -288,6 +288,11 @@
     document.getElementById("score-categories").innerHTML = view.storefront.categories.map((category) => {
       const categoryScore = category.score === null ? "확인 중" : `${category.score}/100`;
       const progress = category.score === null ? 0 : category.score;
+      const progressMarkup = category.score === null
+        ? `<p class="place-score-pending" role="status">아직 확인하지 못한 항목이라 점수 계산에서 뺐어요.</p>`
+        : `<div class="place-score-progress" role="progressbar" aria-label="${escapeHtml(category.label)} 점수" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
+            <span style="width: ${progress}%"></span>
+          </div>`;
       return `
         <article class="place-score-card">
           <div class="place-score-card-head">
@@ -295,9 +300,7 @@
             <strong>${categoryScore}</strong>
           </div>
           <p>${escapeHtml(category.reason)}</p>
-          <div class="place-score-progress" role="progressbar" aria-label="${escapeHtml(category.label)} 점수" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}">
-            <span style="width: ${progress}%"></span>
-          </div>
+          ${progressMarkup}
           <details class="place-score-detail">
             <summary>왜 이렇게 봤나요?</summary>
             <div class="place-score-detail-body">
@@ -503,7 +506,17 @@
   window.JangsaAppTest = {
     renderLowCoverageSample() {
       renderDiagnosisView({
-        storefront: { visible: false, score: null, coverage: 0.4, categories: [] },
+        storefront: {
+          visible: false,
+          score: null,
+          coverage: 0.4,
+          categories: [{
+            label: "대표사진",
+            score: null,
+            reason: "아직 확인하지 못했어요.",
+            criterion: "처음 사진만 보고도 무엇을 파는지, 가 보고 싶은지 알 수 있어야 해요.",
+          }],
+        },
         target: { current: null, target: null, gain: 0, recovered: [] },
         bottleneck: { label: "기초 숫자 확인", requiredCustomersPerDay: 0 },
       });
