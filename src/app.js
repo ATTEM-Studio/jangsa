@@ -124,28 +124,54 @@
   function renderAnalysisProgress(placeUrl) {
     setFlowState("analyzing");
     document.getElementById("analysis-progress").innerHTML = [
-      "Supported Naver Place link recognized.",
-      "Static version: no live crawling or review analysis is running.",
-      "Owner confirmation will be used for the storefront diagnosis.",
+      "플레이스 링크를 받았어요.",
+      "사진, 메뉴, 방문 정보처럼 손님이 결정을 내릴 때 필요한 항목을 점수 기준에 맞춰 준비하고 있어요.",
+      "아직 확인하지 못한 항목은 점수에 넣지 않고, 필요하면 사장님이 직접 보완할 수 있어요.",
     ].map((message) => `<li>${escapeHtml(message)}<small>${escapeHtml(placeUrl)}</small></li>`).join("");
   }
 
   function renderConfirmation() {
-    const rules = storefrontScoreApi?.STOREFRONT_RULES || [];
+    const sections = window.JangsaPlaceScoreModel?.PLACE_SCORE_SECTIONS || [];
     confirmationForm.innerHTML = `
-      <p class="confirmation-note">This static version uses owner confirmation. It does not claim automatic analysis.</p>
-      ${rules.map((rule) => `
-        <fieldset class="confirmation-item">
-          <legend>${escapeHtml(confirmationLabels[rule.key] || rule.key)}</legend>
-          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="pass" /> Good</label>
-          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="partial" /> Needs work</label>
-          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="fail" /> Missing</label>
-          <label><input type="radio" name="confirm-${escapeHtml(rule.key)}" value="unknown" checked /> owner confirmation needed / unknown</label>
-        </fieldset>
-      `).join("")}
+      <article class="confirmation-ready">
+        <strong>플레이스 점수 기준을 준비했어요</strong>
+        <p>확인하지 못한 내용은 점수에서 빼고 진단을 시작합니다. 필요한 경우에만 아래에서 점수를 보완해 주세요.</p>
+      </article>
+      <details class="score-confirmation">
+        <summary>직접 확인해서 점수 보완하기</summary>
+        <p class="confirmation-note">각 영역을 한 번만 골라 주세요. 모르는 내용은 그대로 두면 점수에 넣지 않아요.</p>
+        ${sections.map((section) => `
+          <fieldset class="confirmation-item">
+            <legend>${escapeHtml(section.label)}</legend>
+            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="pass" /> 잘 되어 있어요</label>
+            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="partial" /> 조금 아쉬워요</label>
+            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="fail" /> 비어 있어요</label>
+            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="unknown" checked /> 아직 확인하지 못했어요</label>
+          </fieldset>
+        `).join("")}
+      </details>
     `;
     setFlowState("confirming");
     confirmationSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function buildSectionObservations(values) {
+    const sectionStates = Object.fromEntries(
+      Object.entries(values)
+        .filter(([name]) => name.startsWith("section-"))
+        .map(([name, value]) => [name.slice("section-".length), value]),
+    );
+    return (storefrontScoreApi?.STOREFRONT_RULES || []).map((rule) => {
+      const state = sectionStates[rule.sectionKey] || "unknown";
+      return observationsApi.createObservation({
+        key: rule.key,
+        value: state === "pass" ? true : state === "partial" ? "partial" : state === "fail" ? false : null,
+        source: "owner",
+        confidence: state === "unknown" ? "low" : "high",
+        status: state === "unknown" ? "unknown" : "confirmed",
+        evidence: state === "unknown" ? "사장님이 아직 확인하지 못했어요." : "사장님이 영역 상태를 직접 확인했어요.",
+      });
+    });
   }
 
   function showDiagnosisForm() {
@@ -552,7 +578,7 @@
   });
 
   document.getElementById("confirm-storefront").addEventListener("click", () => {
-    currentOwnerObservations = ui.buildOwnerObservations(Object.fromEntries(new FormData(confirmationForm).entries()));
+    currentOwnerObservations = buildSectionObservations(Object.fromEntries(new FormData(confirmationForm).entries()));
     showDiagnosisForm();
   });
 

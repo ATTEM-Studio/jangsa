@@ -21,7 +21,7 @@ function createApp() {
   return window;
 }
 
-test("supported links switch to honest owner confirmation instead of automatic analysis", () => {
+test("플레이스 링크는 한글 점수 보완 화면으로 이어진다", () => {
   const window = createApp();
   const input = window.document.getElementById("place-url");
   input.value = "https://naver.me/abc123";
@@ -31,8 +31,13 @@ test("supported links switch to honest owner confirmation instead of automatic a
   );
 
   assert.equal(window.document.getElementById("confirmation").hidden, false);
-  assert.match(window.document.getElementById("confirmation").textContent, /static version|owner confirmation/);
-  assert.doesNotMatch(window.document.getElementById("confirmation").textContent, /reviews [0-9,]+ analyzed/i);
+  const confirmation = window.document.getElementById("confirmation");
+  assert.match(confirmation.textContent, /이 기준으로 진단 계속하기/);
+  assert.doesNotMatch(confirmation.textContent, /Good|Needs work|Missing|owner confirmation|Static version/);
+  const details = confirmation.querySelector("details.score-confirmation");
+  assert.ok(details);
+  assert.equal(details.open, false);
+  assert.equal(details.querySelectorAll("fieldset").length, 10);
 });
 
 test("오늘 실행하기는 v2 이력과 7일 확인일을 저장한다", () => {

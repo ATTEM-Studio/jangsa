@@ -1350,6 +1350,24 @@ footer p {
   gap: 14px;
 }
 
+.confirmation-ready,
+.score-confirmation {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.confirmation-ready strong,
+.score-confirmation summary {
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.confirmation-ready p { margin: 8px 0 0; color: var(--muted); }
+.score-confirmation summary { cursor: pointer; }
+.score-confirmation[open] summary { margin-bottom: 14px; }
+
 .confirmation-item {
   display: grid;
   grid-template-columns: 1fr repeat(4, auto);
