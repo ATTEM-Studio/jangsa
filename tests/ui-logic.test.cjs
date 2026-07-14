@@ -94,6 +94,7 @@ test("광고 중이면 같은 기간 광고비와 클릭 수가 필요하다", (
     contributionMarginRate: "30",
     hasConsentDb: "false",
     capacity: "yes",
+    tableTurnover: "two",
     canChangeMenu: "false",
     knowsReturningRate: "false",
   });
@@ -119,6 +120,7 @@ test("화면 입력값을 추천엔진이 쓰는 타입으로 변환한다", () 
     contributionMarginRate: "30",
     hasConsentDb: "false",
     capacity: "yes",
+    tableTurnover: "two",
     canChangeMenu: "false",
     knowsReturningRate: "false",
     returningRate: "",
@@ -127,6 +129,7 @@ test("화면 입력값을 추천엔진이 쓰는 타입으로 변환한다", () 
   assert.equal(input.currentRevenue, 10_000_000);
   assert.equal(input.adsRunning, true);
   assert.equal(input.contributionMarginRate, 0.3);
+  assert.equal(input.tableTurnover, "two");
   assert.equal(input.returningRate, null);
 });
 

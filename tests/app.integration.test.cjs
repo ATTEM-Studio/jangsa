@@ -37,6 +37,17 @@ test("추천 정확도를 높이는 선택 정보는 처음부터 펼쳐 둔다"
   assert.equal(details.open, true);
 });
 
+test("식사형 매장에는 바쁜 시간 테이블 회전 질문을 보여 준다", () => {
+  const window = createApp();
+  const businessType = window.document.querySelector('[name="businessType"][value="meal"]');
+  businessType.click();
+  businessType.dispatchEvent(new window.Event("change", { bubbles: true }));
+
+  const turnover = window.document.getElementById("table-turnover-question");
+  assert.equal(turnover.hidden, false);
+  assert.match(turnover.textContent, /한 테이블이 보통 몇 팀을 받나요/);
+});
+
 test("오늘 실행하기는 v2 이력과 7일 확인일을 저장한다", () => {
   const window = createApp();
 

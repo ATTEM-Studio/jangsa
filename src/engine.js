@@ -137,6 +137,7 @@
       contributionMarginRate: clamp(margin > 1 ? margin / 100 : margin, 0, 1),
       hasConsentDb: input.hasConsentDb === true || input.hasConsentDb === "true",
       capacity: ["yes", "no", "sometimes"].includes(input.capacity) ? input.capacity : "sometimes",
+      tableTurnover: ["one", "two", "threePlus"].includes(input.tableTurnover) ? input.tableTurnover : "unknown",
       canChangeMenu: input.canChangeMenu === true || input.canChangeMenu === "true",
       knowsReturningRate: input.knowsReturningRate === true || input.knowsReturningRate === "true",
       returningRate: input.returningRate === null || input.returningRate === "" || input.returningRate === undefined

@@ -78,6 +78,7 @@
       contributionMarginRate: Math.min(Math.max(margin / 100, 0), 1),
       hasConsentDb: asBoolean(values.hasConsentDb),
       capacity: String(values.capacity || "sometimes"),
+      tableTurnover: ["one", "two", "threePlus"].includes(values.tableTurnover) ? values.tableTurnover : "unknown",
       canChangeMenu: asBoolean(values.canChangeMenu),
       knowsReturningRate: asBoolean(values.knowsReturningRate),
       returningRate: isBlank(values.returningRate) ? null : Math.min(parseNumber(values.returningRate) / 100, 1),

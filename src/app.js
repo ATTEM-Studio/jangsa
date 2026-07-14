@@ -100,6 +100,7 @@
     const values = getValues();
     document.getElementById("ad-fields").hidden = values.adsRunning !== "true";
     document.getElementById("returning-fields").hidden = values.knowsReturningRate !== "true";
+    document.getElementById("table-turnover-question").hidden = !["meal", "group", "bar"].includes(values.businessType);
   }
 
   function setFlowState(state) {
