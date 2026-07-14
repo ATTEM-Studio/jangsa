@@ -21,7 +21,7 @@ function createApp() {
   return window;
 }
 
-test("플레이스 링크는 한글 점수 보완 화면으로 이어진다", () => {
+test("플레이스 링크는 점수 보완 설문 없이 바로 경영 진단으로 이어진다", () => {
   const window = createApp();
   const input = window.document.getElementById("place-url");
   input.value = "https://naver.me/abc123";
@@ -30,14 +30,8 @@ test("플레이스 링크는 한글 점수 보완 화면으로 이어진다", ()
     new window.Event("submit", { bubbles: true, cancelable: true }),
   );
 
-  assert.equal(window.document.getElementById("confirmation").hidden, false);
-  const confirmation = window.document.getElementById("confirmation");
-  assert.match(confirmation.textContent, /이 기준으로 진단 계속하기/);
-  assert.doesNotMatch(confirmation.textContent, /Good|Needs work|Missing|owner confirmation|Static version/);
-  const details = confirmation.querySelector("details.score-confirmation");
-  assert.ok(details);
-  assert.equal(details.open, false);
-  assert.equal(details.querySelectorAll("fieldset").length, 10);
+  assert.equal(window.document.getElementById("confirmation"), null);
+  assert.equal(window.document.getElementById("diagnosis").hidden, false);
 });
 
 test("오늘 실행하기는 v2 이력과 7일 확인일을 저장한다", () => {
@@ -136,7 +130,7 @@ test("dynamic score updates use aria-live and result CTAs are semantic actions",
   }
 });
 
-test("intake flow keeps diagnosis questions hidden until confirmation is accepted", () => {
+test("링크 입력 뒤 바로 경영 진단 질문을 보여 준다", () => {
   const window = createApp();
   window.document.getElementById("place-url").value = "https://naver.me/abc123";
 
@@ -145,21 +139,17 @@ test("intake flow keeps diagnosis questions hidden until confirmation is accepte
   );
 
   assert.equal(window.document.getElementById("intake").hidden, true);
-  assert.equal(window.document.getElementById("diagnosis").hidden, true);
-  window.document.getElementById("confirm-storefront").click();
-  assert.equal(window.document.getElementById("confirmation").hidden, true);
   assert.equal(window.document.getElementById("analysis").hidden, true);
   assert.equal(window.document.getElementById("diagnosis").hidden, false);
 });
 
-test("manual intake still opens owner confirmation", () => {
+test("직접 진단도 바로 경영 진단 질문을 보여 준다", () => {
   const window = createApp();
 
   window.document.getElementById("manual-intake").click();
 
-  assert.equal(window.document.getElementById("confirmation").hidden, false);
   assert.equal(window.document.getElementById("intake").hidden, true);
-  assert.equal(window.document.getElementById("diagnosis").hidden, true);
+  assert.equal(window.document.getElementById("diagnosis").hidden, false);
 });
 
 test("빈 1단계에서 다음을 누르면 쉬운 오류 문구를 보여준다", () => {

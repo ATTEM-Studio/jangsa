@@ -9,9 +9,7 @@
   const intakeSection = document.getElementById("intake");
   const intakeForm = document.getElementById("place-intake-form");
   const analysisSection = document.getElementById("analysis");
-  const confirmationSection = document.getElementById("confirmation");
   const diagnosisSection = document.getElementById("diagnosis");
-  const confirmationForm = document.getElementById("confirmation-form");
   const storefrontScoreApi = window.JangsaStorefrontScore;
   const stepPanels = [...document.querySelectorAll("[data-step]")];
   const errorBox = document.getElementById("form-error");
@@ -116,7 +114,6 @@
   function setFlowState(state) {
     intakeSection.hidden = state !== "intake";
     analysisSection.hidden = state !== "analyzing";
-    confirmationSection.hidden = state !== "confirming";
     diagnosisSection.hidden = state !== "questions";
     resultSection.hidden = state !== "result";
   }
@@ -128,50 +125,6 @@
       "사진, 메뉴, 방문 정보처럼 손님이 결정을 내릴 때 필요한 항목을 점수 기준에 맞춰 준비하고 있어요.",
       "아직 확인하지 못한 항목은 점수에 넣지 않고, 필요하면 사장님이 직접 보완할 수 있어요.",
     ].map((message) => `<li>${escapeHtml(message)}<small>${escapeHtml(placeUrl)}</small></li>`).join("");
-  }
-
-  function renderConfirmation() {
-    const sections = window.JangsaPlaceScoreModel?.PLACE_SCORE_SECTIONS || [];
-    confirmationForm.innerHTML = `
-      <article class="confirmation-ready">
-        <strong>플레이스 점수 기준을 준비했어요</strong>
-        <p>확인하지 못한 내용은 점수에서 빼고 진단을 시작합니다. 필요한 경우에만 아래에서 점수를 보완해 주세요.</p>
-      </article>
-      <details class="score-confirmation">
-        <summary>직접 확인해서 점수 보완하기</summary>
-        <p class="confirmation-note">각 영역을 한 번만 골라 주세요. 모르는 내용은 그대로 두면 점수에 넣지 않아요.</p>
-        ${sections.map((section) => `
-          <fieldset class="confirmation-item">
-            <legend>${escapeHtml(section.label)}</legend>
-            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="pass" /> 잘 되어 있어요</label>
-            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="partial" /> 조금 아쉬워요</label>
-            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="fail" /> 비어 있어요</label>
-            <label><input type="radio" name="section-${escapeHtml(section.key)}" value="unknown" checked /> 아직 확인하지 못했어요</label>
-          </fieldset>
-        `).join("")}
-      </details>
-    `;
-    setFlowState("confirming");
-    confirmationSection.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function buildSectionObservations(values) {
-    const sectionStates = Object.fromEntries(
-      Object.entries(values)
-        .filter(([name]) => name.startsWith("section-"))
-        .map(([name, value]) => [name.slice("section-".length), value]),
-    );
-    return (storefrontScoreApi?.STOREFRONT_RULES || []).map((rule) => {
-      const state = sectionStates[rule.sectionKey] || "unknown";
-      return observationsApi.createObservation({
-        key: rule.key,
-        value: state === "pass" ? true : state === "partial" ? "partial" : state === "fail" ? false : null,
-        source: "owner",
-        confidence: state === "unknown" ? "low" : "high",
-        status: state === "unknown" ? "unknown" : "confirmed",
-        evidence: state === "unknown" ? "사장님이 아직 확인하지 못했어요." : "사장님이 영역 상태를 직접 확인했어요.",
-      });
-    });
   }
 
   function showDiagnosisForm() {
@@ -570,15 +523,10 @@
       return;
     }
     renderAnalysisProgress(placeUrl);
-    renderConfirmation();
+    showDiagnosisForm();
   });
 
   document.getElementById("manual-intake").addEventListener("click", () => {
-    renderConfirmation();
-  });
-
-  document.getElementById("confirm-storefront").addEventListener("click", () => {
-    currentOwnerObservations = buildSectionObservations(Object.fromEntries(new FormData(confirmationForm).entries()));
     showDiagnosisForm();
   });
 
