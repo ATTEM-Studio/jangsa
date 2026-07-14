@@ -6,9 +6,6 @@
   const observationsApi = window.JangsaObservations;
   const presenterApi = window.JangsaDiagnosisPresenter;
   const form = document.getElementById("diagnosis-form");
-  const intakeSection = document.getElementById("intake");
-  const intakeForm = document.getElementById("place-intake-form");
-  const analysisSection = document.getElementById("analysis");
   const diagnosisSection = document.getElementById("diagnosis");
   const storefrontScoreApi = window.JangsaStorefrontScore;
   const stepPanels = [...document.querySelectorAll("[data-step]")];
@@ -105,26 +102,9 @@
     document.getElementById("returning-fields").hidden = values.knowsReturningRate !== "true";
   }
 
-  function showIntakeError(message) {
-    const error = document.getElementById("place-url-error");
-    error.textContent = message;
-    error.hidden = false;
-  }
-
   function setFlowState(state) {
-    intakeSection.hidden = state !== "intake";
-    analysisSection.hidden = state !== "analyzing";
     diagnosisSection.hidden = state !== "questions";
     resultSection.hidden = state !== "result";
-  }
-
-  function renderAnalysisProgress(placeUrl) {
-    setFlowState("analyzing");
-    document.getElementById("analysis-progress").innerHTML = [
-      "플레이스 링크를 받았어요.",
-      "사진, 메뉴, 방문 정보처럼 손님이 결정을 내릴 때 필요한 항목을 점수 기준에 맞춰 준비하고 있어요.",
-      "아직 확인하지 못한 항목은 점수에 넣지 않고, 필요하면 사장님이 직접 보완할 수 있어요.",
-    ].map((message) => `<li>${escapeHtml(message)}<small>${escapeHtml(placeUrl)}</small></li>`).join("");
   }
 
   function showDiagnosisForm() {
@@ -504,30 +484,11 @@
     resultCopyText,
   };
 
-  document.querySelectorAll("[data-start]").forEach((button) => {
-    button.addEventListener("click", () => document.getElementById("intake").scrollIntoView({ behavior: "smooth" }));
-  });
+  document.querySelectorAll("[data-start]").forEach((button) => button.addEventListener("click", showDiagnosisForm));
 
   document.querySelectorAll("[data-sample]").forEach((button) => button.addEventListener("click", loadSample));
   document.querySelectorAll("[data-scroll-history]").forEach((button) => {
     button.addEventListener("click", () => document.getElementById("history").scrollIntoView({ behavior: "smooth" }));
-  });
-
-  intakeForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const error = document.getElementById("place-url-error");
-    error.hidden = true;
-    const placeUrl = ui.normalizePlaceUrl(new FormData(intakeForm).get("placeUrl"));
-    if (!placeUrl) {
-      showIntakeError("Naver Place links only. Try a naver.me or place.naver.com URL, or continue manually.");
-      return;
-    }
-    renderAnalysisProgress(placeUrl);
-    showDiagnosisForm();
-  });
-
-  document.getElementById("manual-intake").addEventListener("click", () => {
-    showDiagnosisForm();
   });
 
   nextButton.addEventListener("click", () => {

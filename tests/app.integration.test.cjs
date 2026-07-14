@@ -21,16 +21,11 @@ function createApp() {
   return window;
 }
 
-test("플레이스 링크는 점수 보완 설문 없이 바로 경영 진단으로 이어진다", () => {
+test("진단 시작 버튼은 링크 입력 없이 바로 경영 진단으로 이어진다", () => {
   const window = createApp();
-  const input = window.document.getElementById("place-url");
-  input.value = "https://naver.me/abc123";
-
-  window.document.getElementById("place-intake-form").dispatchEvent(
-    new window.Event("submit", { bubbles: true, cancelable: true }),
-  );
-
-  assert.equal(window.document.getElementById("confirmation"), null);
+  assert.equal(window.document.getElementById("place-intake-form"), null);
+  assert.equal(window.document.getElementById("analysis"), null);
+  window.document.querySelector("[data-start]").click();
   assert.equal(window.document.getElementById("diagnosis").hidden, false);
 });
 
@@ -130,27 +125,14 @@ test("dynamic score updates use aria-live and result CTAs are semantic actions",
   }
 });
 
-test("링크 입력 뒤 바로 경영 진단 질문을 보여 준다", () => {
+test("첫 화면은 링크 입력 없이 바로 진단을 시작한다", () => {
   const window = createApp();
-  window.document.getElementById("place-url").value = "https://naver.me/abc123";
-
-  window.document.getElementById("place-intake-form").dispatchEvent(
-    new window.Event("submit", { bubbles: true, cancelable: true }),
-  );
-
-  assert.equal(window.document.getElementById("intake").hidden, true);
-  assert.equal(window.document.getElementById("analysis").hidden, true);
+  assert.equal(window.document.getElementById("intake"), null);
+  window.document.querySelector("[data-start]").click();
+  assert.equal(window.document.getElementById("analysis"), null);
   assert.equal(window.document.getElementById("diagnosis").hidden, false);
 });
 
-test("직접 진단도 바로 경영 진단 질문을 보여 준다", () => {
-  const window = createApp();
-
-  window.document.getElementById("manual-intake").click();
-
-  assert.equal(window.document.getElementById("intake").hidden, true);
-  assert.equal(window.document.getElementById("diagnosis").hidden, false);
-});
 
 test("빈 1단계에서 다음을 누르면 쉬운 오류 문구를 보여준다", () => {
   const window = createApp();
@@ -169,7 +151,7 @@ test("샘플 진단은 광고 확대 금지 행동 하나와 확인 지표를 �
   window.document.querySelector("[data-sample]").click();
 
   assert.equal(window.document.getElementById("result").hidden, false);
-  assert.equal(window.document.getElementById("intake").hidden, true);
+  assert.equal(window.document.getElementById("intake"), null);
   assert.equal(window.document.getElementById("diagnosis").hidden, true);
   assert.match(window.document.getElementById("result-title").textContent, /광고비를 늘리지 마세요/);
   assert.match(window.document.getElementById("result-metric").textContent, /전화|길찾기|예약/);
